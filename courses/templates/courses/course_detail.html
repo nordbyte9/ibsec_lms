@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}{{ course.title }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h3 class="mb-0">{{ course.title }}</h3>
+    <div class="text-muted">Автор: {{ course.author.get_full_name|default:course.author.username }}</div>
+  </div>
+  {% if request.user.profile.role == 'instructor' or request.user.profile.role == 'admin' %}
+  <a class="btn btn-sm btn-outline-secondary" href="{% url 'courses:lesson_create' course.pk %}">Добавить урок</a>
+  {% endif %}
+</div>
+<p>{{ course.description }}</p>
+<h5>Уроки</h5>
+<ol class="list-group list-group-numbered mb-4">
+{% for l in lessons %}
+  <li class="list-group-item">
+    <div class="fw-bold">{{ l.title }}</div>
+    {% if l.type == 'text' %}<div>{{ l.content|linebreaks }}</div>{% endif %}
+    {% if l.type == 'link' %}<div><a href="{{ l.content }}" target="_blank">{{ l.content }}</a></div>{% endif %}
+    {% if l.file %}<div><a href="{{ l.file.url }}">Скачать файл</a></div>{% endif %}
+  </li>
+{% empty %}
+  <li class="list-group-item">В этом курсе пока нет уроков.</li>
+{% endfor %}
+</ol>
+
+{% if course.quizzes.all %}
+  <a class="btn btn-success" href="/quizzes/course/{{ course.pk }}/">Пройти тест</a>
+{% endif %}
+{% endblock %}

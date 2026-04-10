@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% block title %}Тест по курсу {{ course.title }}{% endblock %}
+{% block content %}
+<h3>{{ quiz.title }}</h3>
+<p>{{ quiz.description }}</p>
+<a class="btn btn-success" href="{% url 'quizzes:take' quiz.id %}">Начать тест</a>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}Прохождение теста{% endblock %}
+{% block content %}
+<h3>{{ quiz.title }}</h3>
+<form method="post">{% csrf_token %}
+  {% for q in questions %}
+    <div class="mb-3 p-3 border rounded">
+      <p class="fw-bold">{{ forloop.counter }}. {{ q.text }}</p>
+      {% for opt in q.options.all %}
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="question_{{ q.id }}" id="opt{{ opt.id }}" value="{{ opt.id }}">
+          <label class="form-check-label" for="opt{{ opt.id }}">{{ opt.text }}</label>
+        </div>
+      {% endfor %}
+    </div>
+  {% endfor %}
+  <button class="btn btn-primary">Отправить</button>
+</form>
+{% endblock %}

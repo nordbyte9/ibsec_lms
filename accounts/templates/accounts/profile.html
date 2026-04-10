@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% block title %}Профиль{% endblock %}
+{% block content %}
+<h3>Профиль</h3>
+<p><b>Пользователь:</b> {{ request.user.get_full_name|default:request.user.username }}</p>
+<p><b>Роль:</b> {{ request.user.profile.get_role_display }}</p>
+<p><b>E-mail:</b> {{ request.user.email }}</p>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}Результат теста{% endblock %}
+{% block content %}
+<h3>Результат: {{ submission.score }}%</h3>
+{% if submission.passed %}
+  <div class="alert alert-success">Тест пройден.</div>
+{% else %}
+  <div class="alert alert-danger">Тест не пройден.</div>
+{% endif %}
+<a class="btn btn-outline-secondary" href="/reports/my/">Мой прогресс</a>
+{% endblock %}

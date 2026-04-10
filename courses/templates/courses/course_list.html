@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}Курсы{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3>Курсы</h3>
+  {% if request.user.profile.role == 'instructor' or request.user.profile.role == 'admin' %}
+  <a class="btn btn-sm btn-outline-primary" href="{% url 'courses:create' %}">Создать курс</a>
+  {% endif %}
+</div>
+<div class="row">
+{% for c in courses %}
+  <div class="col-md-6">
+    <div class="card mb-3">
+      <div class="card-body">
+        <h5 class="card-title">{{ c.title }}</h5>
+        <p class="card-text">{{ c.description|truncatewords:30 }}</p>
+        <a class="btn btn-primary" href="{% url 'courses:detail' c.pk %}">Открыть</a>
+      </div>
+    </div>
+  </div>
+{% empty %}
+  <p>Пока нет опубликованных курсов.</p>
+{% endfor %}
+</div>
+{% endblock %}
