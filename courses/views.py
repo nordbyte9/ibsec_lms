@@ -17,7 +17,7 @@ def course_detail(request, pk):
 
 @login_required
 def course_create(request):
-    if request.user.profile.role not in ('instructor','admin'):
+    if request.user.profile.role not in ('security_officer', 'admin'):
         return HttpResponseForbidden('Недостаточно прав')
     if request.method == 'POST':
         form = CourseForm(request.POST)
@@ -33,7 +33,7 @@ def course_create(request):
 @login_required
 def lesson_create(request, course_id):
     course = get_object_or_404(Course, pk=course_id)
-    if request.user.profile.role not in ('instructor','admin'):
+    if request.user.profile.role not in ('security_officer', 'admin'):
         return HttpResponseForbidden('Недостаточно прав')
     if request.method == 'POST':
         form = LessonForm(request.POST, request.FILES)

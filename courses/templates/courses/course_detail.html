@@ -6,7 +6,7 @@
     <h3 class="mb-0">{{ course.title }}</h3>
     <div class="text-muted">Автор: {{ course.author.get_full_name|default:course.author.username }}</div>
   </div>
-  {% if request.user.profile.role == 'instructor' or request.user.profile.role == 'admin' %}
+  {% if request.user.profile.role == 'security_officer' or request.user.profile.role == 'admin' %}
   <a class="btn btn-sm btn-outline-secondary" href="{% url 'courses:lesson_create' course.pk %}">Добавить урок</a>
   {% endif %}
 </div>

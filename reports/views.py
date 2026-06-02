@@ -12,7 +12,7 @@ def my_progress(request):
 
 @login_required
 def analytics(request):
-    if request.user.profile.role not in ('instructor','admin'):
+    if request.user.profile.role not in ('security_officer', 'admin'):
         return HttpResponseForbidden('Недостаточно прав')
     quizzes = Quiz.objects.all().prefetch_related('submissions', 'course')
     stats = [
@@ -28,7 +28,7 @@ def analytics(request):
 
 @login_required
 def export_csv(request):
-    if request.user.profile.role not in ('instructor','admin'):
+    if request.user.profile.role not in ('security_officer', 'admin'):
         return HttpResponseForbidden('Недостаточно прав')
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="submissions.csv"'
