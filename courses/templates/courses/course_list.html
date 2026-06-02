@@ -3,7 +3,7 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h3>Курсы</h3>
-  {% if request.user.profile.role == 'instructor' or request.user.profile.role == 'admin' %}
+  {% if request.user.profile.role == 'security_officer' or request.user.profile.role == 'admin' %}
   <a class="btn btn-sm btn-outline-primary" href="{% url 'courses:create' %}">Создать курс</a>
   {% endif %}
 </div>
