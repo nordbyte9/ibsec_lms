@@ -7,7 +7,7 @@ from django.utils import timezone
 from accounts.models import Department, Position, Profile
 from assignments.models import CourseAssignment
 from courses.models import Course, Lesson, SecurityCategory, TrainingProgram
-from quizzes.models import Option, Question, Quiz
+from quizzes.models import Answer, Option, Question, Quiz, Submission
 
 
 class Command(BaseCommand):
@@ -180,8 +180,20 @@ class Command(BaseCommand):
         quiz, _ = Quiz.objects.get_or_create(
             course=course,
             title='Тест по основам ИБ',
-            defaults={'description': '3 вопроса', 'pass_score': 70, 'is_active': True},
+            defaults={
+                'description': '3 вопроса',
+                'pass_score': 70,
+                'time_limit_minutes': 20,
+                'max_attempts': 3,
+                'is_active': True,
+            },
         )
+        quiz.description = '3 вопроса'
+        quiz.pass_score = 70
+        quiz.time_limit_minutes = 20
+        quiz.max_attempts = 3
+        quiz.is_active = True
+        quiz.save(update_fields=['description', 'pass_score', 'time_limit_minutes', 'max_attempts', 'is_active'])
         if not quiz.questions.exists():
             q1 = Question.objects.create(quiz=quiz, text='Что такое фишинг?')
             Option.objects.create(question=q1, text='Маскированная попытка выманить данные', is_correct=True)
@@ -197,6 +209,30 @@ class Command(BaseCommand):
             Option.objects.create(question=q3, text='Многофакторная аутентификация', is_correct=True)
             Option.objects.create(question=q3, text='Мобильный файловый архив', is_correct=False)
             Option.objects.create(question=q3, text='Межсетевой экран', is_correct=False)
+
+        demo_attempts = [
+            (employee, 1, 100.0, True),
+            (employee, 2, 66.67, False),
+            (employee_two, 1, 100.0, True),
+        ]
+        for demo_user, attempt_number, percent, passed in demo_attempts:
+            submission, _ = Submission.objects.get_or_create(
+                user=demo_user,
+                quiz=quiz,
+                attempt_number=attempt_number,
+                defaults={
+                    'score': 0,
+                    'percent': percent,
+                    'passed': passed,
+                },
+            )
+            submission.score = 3 if passed else 2
+            submission.percent = percent
+            submission.passed = passed
+            submission.save(update_fields=['score', 'percent', 'passed'])
+            if not submission.answers.exists():
+                for question in quiz.questions.all():
+                    Answer.objects.get_or_create(submission=submission, question=question)
 
         today = timezone.localdate()
         assignments = [
