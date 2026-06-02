@@ -1,36 +1,100 @@
-from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
-from accounts.models import Profile
+from django.core.management.base import BaseCommand
+
+from accounts.models import Department, Position, Profile
 from courses.models import Course, Lesson
-from quizzes.models import Quiz, Question, Option
+from quizzes.models import Option, Question, Quiz
+
 
 class Command(BaseCommand):
-    help = "Создаёт демо-данные и аккаунты"
+    help = 'Создаёт демо-данные и аккаунты'
 
     def handle(self, *args, **kwargs):
-        def create_user(username, email, pwd, role):
+        departments = [
+            Department.objects.get_or_create(name='Отдел информационной безопасности')[0],
+            Department.objects.get_or_create(name='ИТ-отдел')[0],
+            Department.objects.get_or_create(name='Отдел кадров')[0],
+        ]
+        positions = [
+            Position.objects.get_or_create(name='Специалист по ИБ')[0],
+            Position.objects.get_or_create(name='Системный администратор')[0],
+            Position.objects.get_or_create(name='Менеджер по персоналу')[0],
+        ]
+
+        def create_user(username, email, pwd, role, department=None, position=None, is_staff=False, is_superuser=False):
             user, _ = User.objects.get_or_create(username=username, defaults={'email': email})
-            if not user.has_usable_password():
-                user.set_password(pwd)
-                user.save()
-            prof = user.profile
-            prof.role = role
-            prof.save()
+            user.email = email
+            user.set_password(pwd)
+            user.is_staff = is_staff
+            user.is_superuser = is_superuser
+            user.save()
+
+            profile, _ = Profile.objects.get_or_create(user=user)
+            profile.role = role
+            profile.department = department
+            profile.position = position
+            profile.save()
             return user
 
-        admin = create_user('admin', 'admin@example.com', 'admin12345', 'admin')
-        instructor = create_user('instructor', 'instructor@example.com', 'instructor12345', 'instructor')
-        employee = create_user('employee', 'employee@example.com', 'employee12345', 'employee')
+        create_user(
+            'admin',
+            'admin@example.com',
+            'admin12345',
+            'admin',
+            department=departments[0],
+            position=positions[0],
+            is_staff=True,
+            is_superuser=True,
+        )
+        security_officer = create_user(
+            'security_officer',
+            'security_officer@example.com',
+            'security_officer12345',
+            'security_officer',
+            department=departments[0],
+            position=positions[0],
+        )
+        create_user(
+            'employee',
+            'employee@example.com',
+            'employee12345',
+            'employee',
+            department=departments[1],
+            position=positions[1],
+        )
 
         course, _ = Course.objects.get_or_create(
             title='Основы информационной безопасности',
-            defaults={'description': 'Базовый курс по ИБ для сотрудников.', 'author': instructor, 'is_published': True}
+            defaults={
+                'description': 'Базовый курс по ИБ для сотрудников.',
+                'author': security_officer,
+                'is_published': True,
+            },
         )
-        Lesson.objects.get_or_create(course=course, title='Введение в ИБ', order=1, defaults={'content': 'Основные понятия ИБ...'})
-        Lesson.objects.get_or_create(course=course, title='Фишинг и социальная инженерия', order=2, defaults={'content': 'Как распознавать фишинговые письма...'})
-        Lesson.objects.get_or_create(course=course, title='Пароли и аутентификация', order=3, defaults={'content': 'Надёжные пароли, MFA...'})
+        Lesson.objects.get_or_create(
+            course=course,
+            title='Введение в ИБ',
+            order=1,
+            defaults={'content': 'Основные понятия ИБ...'},
+        )
+        Lesson.objects.get_or_create(
+            course=course,
+            title='Фишинг и социальная инженерия',
+            order=2,
+            defaults={'content': 'Как распознавать фишинговые письма...'},
+        )
+        Lesson.objects.get_or_create(
+            course=course,
+            title='Пароли и аутентификация',
+            order=3,
+            defaults={'content': 'Надёжные пароли, MFA...'},
+        )
 
-        quiz, _ = Quiz.objects.get_or_create(course=course, title='Тест по основам ИБ', defaults={'description': '3 вопроса', 'pass_score': 70, 'is_active': True})
+        quiz, _ = Quiz.objects.get_or_create(
+            course=course,
+            title='Тест по основам ИБ',
+            defaults={'description': '3 вопроса', 'pass_score': 70, 'is_active': True},
+        )
         if not quiz.questions.exists():
             q1 = Question.objects.create(quiz=quiz, text='Что такое фишинг?')
             Option.objects.create(question=q1, text='Маскированная попытка выманить данные', is_correct=True)
