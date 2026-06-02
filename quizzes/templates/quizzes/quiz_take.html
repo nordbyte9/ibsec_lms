@@ -2,6 +2,13 @@
 {% block title %}Прохождение теста{% endblock %}
 {% block content %}
 <h3>{{ quiz.title }}</h3>
+<div class="mb-3 text-muted">
+  Проходной балл: {{ quiz.pass_score }}% ·
+  Лимит времени: {{ quiz.time_limit_minutes }} мин. ·
+  Доступно попыток: {{ quiz.max_attempts }} ·
+  Использовано попыток: {{ attempts_used }} ·
+  Осталось: {{ attempts_left }}
+</div>
 <form method="post">{% csrf_token %}
   {% for q in questions %}
     <div class="mb-3 p-3 border rounded">

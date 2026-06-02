@@ -1,7 +1,25 @@
 {% extends 'base.html' %}
 {% block title %}Тест по курсу {{ course.title }}{% endblock %}
 {% block content %}
+{% if quiz %}
 <h3>{{ quiz.title }}</h3>
-<p>{{ quiz.description }}</p>
-<a class="btn btn-success" href="{% url 'quizzes:take' quiz.id %}">Начать тест</a>
+<div class="card mb-3">
+  <div class="card-body">
+    <p class="mb-2">{{ quiz.description }}</p>
+    <p class="mb-2"><b>Проходной балл:</b> {{ quiz.pass_score }}%</p>
+    <p class="mb-2"><b>Лимит времени:</b> {{ quiz.time_limit_minutes }} мин.</p>
+    <p class="mb-2"><b>Доступно попыток:</b> {{ quiz.max_attempts }}</p>
+    <p class="mb-0"><b>Использовано попыток:</b> {{ attempts_used }}</p>
+  </div>
+</div>
+{% if attempts_used < quiz.max_attempts %}
+  <a class="btn btn-success" href="{% url 'quizzes:take' quiz.id %}">Начать тест</a>
+{% else %}
+  <div class="alert alert-warning">Лимит попыток исчерпан.</div>
+{% endif %}
+{% else %}
+<h3>Тест по курсу {{ course.title }}</h3>
+  <div class="alert alert-secondary">Для этого курса пока нет активного теста.</div>
+{% endif %}
+<a class="btn btn-outline-secondary ms-2" href="{% url 'quizzes:attempt_history' %}">История попыток</a>
 {% endblock %}
