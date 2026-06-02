@@ -14,6 +14,17 @@
       <div class="card-body">
         <h5 class="card-title">{{ c.title }}</h5>
         <p class="card-text">{{ c.description|truncatewords:30 }}</p>
+        <div class="small text-muted mb-2">
+          {% if c.training_program %}
+            Программа: {{ c.training_program.title }} · Категория: {{ c.training_program.category.name }}
+          {% else %}
+            Программа не назначена
+          {% endif %}
+        </div>
+        <div class="small mb-3">
+          {% if c.is_mandatory %}<span class="badge bg-danger">Обязательный</span>{% endif %}
+          {% if c.validity_days %}<span class="badge bg-secondary">Срок: {{ c.validity_days }} дн.</span>{% endif %}
+        </div>
         <a class="btn btn-primary" href="{% url 'courses:detail' c.pk %}">Открыть</a>
       </div>
     </div>

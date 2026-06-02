@@ -10,7 +10,19 @@
   <a class="btn btn-sm btn-outline-secondary" href="{% url 'courses:lesson_create' course.pk %}">Добавить урок</a>
   {% endif %}
 </div>
-<p>{{ course.description }}</p>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <p class="mb-2">{{ course.description }}</p>
+    <p class="mb-2"><b>Программа:</b> {% if course.training_program %}{{ course.training_program }}{% else %}-{% endif %}</p>
+    <p class="mb-2"><b>Категория:</b> {% if course.training_program %}{{ course.training_program.category }}{% else %}-{% endif %}</p>
+    <p class="mb-2"><b>Обязательный:</b> {% if course.is_mandatory %}Да{% else %}Нет{% endif %}</p>
+    <p class="mb-2"><b>Срок актуальности:</b> {{ course.validity_days|default:"-" }}</p>
+    <p class="mb-2"><b>Целевые подразделения:</b> {% for department in course.target_departments.all %}{{ department }}{% if not forloop.last %}, {% endif %}{% empty %}-{% endfor %}</p>
+    <p class="mb-0"><b>Целевые должности:</b> {% for position in course.target_positions.all %}{{ position }}{% if not forloop.last %}, {% endif %}{% empty %}-{% endfor %}</p>
+  </div>
+</div>
+
 <h5>Уроки</h5>
 <ol class="list-group list-group-numbered mb-4">
 {% for l in lessons %}
