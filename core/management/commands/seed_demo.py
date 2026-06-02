@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 
 from accounts.models import Department, Position, Profile
-from courses.models import Course, Lesson
+from courses.models import Course, Lesson, SecurityCategory, TrainingProgram
 from quizzes.models import Option, Question, Quiz
 
 
@@ -63,6 +63,70 @@ class Command(BaseCommand):
             position=positions[1],
         )
 
+        category_specs = [
+            ('personal-data', 'Персональные данные', 'Материалы о защите и обработке персональных данных.'),
+            ('phishing', 'Фишинг', 'Программы по распознаванию фишинга и социальной инженерии.'),
+            ('password-security', 'Парольная безопасность', 'Обучение правилам работы с паролями и MFA.'),
+            ('corporate-mail', 'Корпоративная почта', 'Безопасная работа с корпоративной почтой и вложениями.'),
+        ]
+        categories = {}
+        for code, name, description in category_specs:
+            categories[code], _ = SecurityCategory.objects.get_or_create(
+                code=code,
+                defaults={'name': name, 'description': description},
+            )
+            if categories[code].name != name or categories[code].description != description:
+                categories[code].name = name
+                categories[code].description = description
+                categories[code].save(update_fields=['name', 'description'])
+
+        program_specs = [
+            (
+                'Антифишинг для сотрудников',
+                'phishing',
+                'Как распознавать фишинговые письма и не реагировать на социальную инженерию.',
+                True,
+                365,
+            ),
+            (
+                'Работа с персональными данными',
+                'personal-data',
+                'Базовые требования по защите и обработке персональных данных.',
+                True,
+                365,
+            ),
+            (
+                'Парольная гигиена',
+                'password-security',
+                'Создание и хранение надёжных паролей, MFA и защита учётных записей.',
+                True,
+                180,
+            ),
+            (
+                'Безопасная корпоративная почта',
+                'corporate-mail',
+                'Практики безопасной работы с корпоративной почтой и вложениями.',
+                False,
+                365,
+            ),
+        ]
+        programs = {}
+        for title, category_code, description, is_mandatory, periodicity_days in program_specs:
+            programs[title], _ = TrainingProgram.objects.get_or_create(
+                title=title,
+                defaults={
+                    'category': categories[category_code],
+                    'description': description,
+                    'is_mandatory': is_mandatory,
+                    'periodicity_days': periodicity_days,
+                },
+            )
+            programs[title].category = categories[category_code]
+            programs[title].description = description
+            programs[title].is_mandatory = is_mandatory
+            programs[title].periodicity_days = periodicity_days
+            programs[title].save()
+
         course, _ = Course.objects.get_or_create(
             title='Основы информационной безопасности',
             defaults={
@@ -71,6 +135,16 @@ class Command(BaseCommand):
                 'is_published': True,
             },
         )
+        course.description = 'Базовый курс по ИБ для сотрудников.'
+        course.author = security_officer
+        course.is_published = True
+        course.training_program = programs['Антифишинг для сотрудников']
+        course.is_mandatory = True
+        course.validity_days = 365
+        course.save()
+        course.target_departments.set([departments[0], departments[1]])
+        course.target_positions.set([positions[0], positions[1]])
+
         Lesson.objects.get_or_create(
             course=course,
             title='Введение в ИБ',
