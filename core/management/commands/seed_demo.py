@@ -1,7 +1,11 @@
+from datetime import timedelta
+
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
+from django.utils import timezone
 
 from accounts.models import Department, Position, Profile
+from assignments.models import CourseAssignment
 from courses.models import Course, Lesson, SecurityCategory, TrainingProgram
 from quizzes.models import Option, Question, Quiz
 
@@ -21,10 +25,10 @@ class Command(BaseCommand):
             Position.objects.get_or_create(name='Менеджер по персоналу')[0],
         ]
 
-        def create_user(username, email, pwd, role, department=None, position=None, is_staff=False, is_superuser=False):
+        def create_user(username, email, password, role, department=None, position=None, is_staff=False, is_superuser=False):
             user, _ = User.objects.get_or_create(username=username, defaults={'email': email})
             user.email = email
-            user.set_password(pwd)
+            user.set_password(password)
             user.is_staff = is_staff
             user.is_superuser = is_superuser
             user.save()
@@ -36,7 +40,7 @@ class Command(BaseCommand):
             profile.save()
             return user
 
-        create_user(
+        admin = create_user(
             'admin',
             'admin@example.com',
             'admin12345',
@@ -54,13 +58,21 @@ class Command(BaseCommand):
             department=departments[0],
             position=positions[0],
         )
-        create_user(
+        employee = create_user(
             'employee',
             'employee@example.com',
             'employee12345',
             'employee',
             department=departments[1],
             position=positions[1],
+        )
+        employee_two = create_user(
+            'employee2',
+            'employee2@example.com',
+            'employee22345',
+            'employee',
+            department=departments[2],
+            position=positions[2],
         )
 
         category_specs = [
@@ -71,14 +83,14 @@ class Command(BaseCommand):
         ]
         categories = {}
         for code, name, description in category_specs:
-            categories[code], _ = SecurityCategory.objects.get_or_create(
+            category, _ = SecurityCategory.objects.get_or_create(
                 code=code,
                 defaults={'name': name, 'description': description},
             )
-            if categories[code].name != name or categories[code].description != description:
-                categories[code].name = name
-                categories[code].description = description
-                categories[code].save(update_fields=['name', 'description'])
+            category.name = name
+            category.description = description
+            category.save(update_fields=['name', 'description'])
+            categories[code] = category
 
         program_specs = [
             (
@@ -112,7 +124,7 @@ class Command(BaseCommand):
         ]
         programs = {}
         for title, category_code, description, is_mandatory, periodicity_days in program_specs:
-            programs[title], _ = TrainingProgram.objects.get_or_create(
+            program, _ = TrainingProgram.objects.get_or_create(
                 title=title,
                 defaults={
                     'category': categories[category_code],
@@ -121,11 +133,12 @@ class Command(BaseCommand):
                     'periodicity_days': periodicity_days,
                 },
             )
-            programs[title].category = categories[category_code]
-            programs[title].description = description
-            programs[title].is_mandatory = is_mandatory
-            programs[title].periodicity_days = periodicity_days
-            programs[title].save()
+            program.category = categories[category_code]
+            program.description = description
+            program.is_mandatory = is_mandatory
+            program.periodicity_days = periodicity_days
+            program.save(update_fields=['category', 'description', 'is_mandatory', 'periodicity_days'])
+            programs[title] = program
 
         course, _ = Course.objects.get_or_create(
             title='Основы информационной безопасности',
@@ -184,5 +197,27 @@ class Command(BaseCommand):
             Option.objects.create(question=q3, text='Многофакторная аутентификация', is_correct=True)
             Option.objects.create(question=q3, text='Мобильный файловый архив', is_correct=False)
             Option.objects.create(question=q3, text='Межсетевой экран', is_correct=False)
+
+        today = timezone.localdate()
+        assignments = [
+            (employee, course, admin, today + timedelta(days=14), CourseAssignment.Status.ASSIGNED),
+            (employee, course, security_officer, today + timedelta(days=7), CourseAssignment.Status.IN_PROGRESS),
+            (employee_two, course, security_officer, today - timedelta(days=3), CourseAssignment.Status.COMPLETED),
+            (employee_two, course, admin, today - timedelta(days=1), CourseAssignment.Status.OVERDUE),
+        ]
+        for employee_user, assigned_course, assigned_by, due_date, status in assignments:
+            assignment, _ = CourseAssignment.objects.get_or_create(
+                employee=employee_user,
+                course=assigned_course,
+                due_date=due_date,
+                defaults={
+                    'assigned_by': assigned_by,
+                    'status': status,
+                },
+            )
+            assignment.assigned_by = assigned_by
+            assignment.status = status
+            assignment.due_date = due_date
+            assignment.save()
 
         self.stdout.write(self.style.SUCCESS('Демо-данные созданы.'))
