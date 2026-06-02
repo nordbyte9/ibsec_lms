@@ -14,8 +14,12 @@
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             <li class="nav-item"><a class="nav-link" href="/courses/">Курсы</a></li>
             <li class="nav-item"><a class="nav-link" href="/reports/my/">Мой прогресс</a></li>
-            {% if request.user.profile.role == 'security_officer' or request.user.profile.role == 'admin' %}
-              <a class="btn btn-sm btn-outline-primary" href="{% url 'courses:create' %}">Создать курс</a>
+            {% if request.user.is_authenticated %}
+              <li class="nav-item"><a class="nav-link" href="{% url 'assignments:my' %}">Мои назначения</a></li>
+              {% if request.user.profile.role == 'security_officer' or request.user.profile.role == 'admin' %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'assignments:list' %}">Назначения</a></li>
+                <a class="btn btn-sm btn-outline-primary" href="{% url 'courses:create' %}">Создать курс</a>
+              {% endif %}
             {% endif %}
           </ul>
           <ul class="navbar-nav">
