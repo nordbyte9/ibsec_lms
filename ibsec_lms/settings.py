@@ -17,6 +17,7 @@ INSTALLED_APPS = [
     'accounts',
     'core',
     'courses',
+    'assignments',
     'quizzes',
     'reports',
     'notifications'
