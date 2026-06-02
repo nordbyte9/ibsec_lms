@@ -6,12 +6,22 @@ from .forms import CourseForm, LessonForm
 
 @login_required
 def course_list(request):
-    courses = Course.objects.filter(is_published=True).order_by('-created_at')
+    courses = (
+        Course.objects.filter(is_published=True)
+        .select_related('training_program', 'training_program__category', 'author')
+        .prefetch_related('target_departments', 'target_positions')
+        .order_by('-created_at')
+    )
     return render(request, 'courses/course_list.html', {'courses': courses})
 
 @login_required
 def course_detail(request, pk):
-    course = get_object_or_404(Course, pk=pk, is_published=True)
+    course = get_object_or_404(
+        Course.objects.select_related('training_program', 'training_program__category', 'author')
+        .prefetch_related('lessons', 'target_departments', 'target_positions'),
+        pk=pk,
+        is_published=True,
+    )
     lessons = course.lessons.all()
     return render(request, 'courses/course_detail.html', {'course': course, 'lessons': lessons})
 
@@ -25,6 +35,7 @@ def course_create(request):
             obj = form.save(commit=False)
             obj.author = request.user
             obj.save()
+            form.save_m2m()
             return redirect('courses:detail', obj.pk)
     else:
         form = CourseForm()
