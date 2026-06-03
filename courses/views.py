@@ -3,6 +3,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponseForbidden
 from .models import Course, Lesson
 from .forms import CourseForm, LessonForm
+from core.navigation import breadcrumbs
 
 @login_required
 def course_list(request):
@@ -12,7 +13,11 @@ def course_list(request):
         .prefetch_related('target_departments', 'target_positions')
         .order_by('-created_at')
     )
-    return render(request, 'courses/course_list.html', {'courses': courses})
+    return render(
+        request,
+        'courses/course_list.html',
+        {'courses': courses, 'breadcrumbs': breadcrumbs(('Главная', '/'), ('Курсы', None))},
+    )
 
 @login_required
 def course_detail(request, pk):
@@ -23,7 +28,15 @@ def course_detail(request, pk):
         is_published=True,
     )
     lessons = course.lessons.all()
-    return render(request, 'courses/course_detail.html', {'course': course, 'lessons': lessons})
+    return render(
+        request,
+        'courses/course_detail.html',
+        {
+            'course': course,
+            'lessons': lessons,
+            'breadcrumbs': breadcrumbs(('Главная', '/'), ('Курсы', '/courses/'), (course.title, None)),
+        },
+    )
 
 @login_required
 def course_create(request):
@@ -39,7 +52,11 @@ def course_create(request):
             return redirect('courses:detail', obj.pk)
     else:
         form = CourseForm()
-    return render(request, 'courses/course_create.html', {'form': form})
+    return render(
+        request,
+        'courses/course_create.html',
+        {'form': form, 'breadcrumbs': breadcrumbs(('Главная', '/'), ('Курсы', '/courses/'), ('Создать курс', None))},
+    )
 
 @login_required
 def lesson_create(request, course_id):
@@ -55,4 +72,17 @@ def lesson_create(request, course_id):
             return redirect('courses:detail', course.pk)
     else:
         form = LessonForm()
-    return render(request, 'courses/lesson_form.html', {'form': form, 'course': course})
+    return render(
+        request,
+        'courses/lesson_form.html',
+        {
+            'form': form,
+            'course': course,
+            'breadcrumbs': breadcrumbs(
+                ('Главная', '/'),
+                ('Курсы', '/courses/'),
+                (course.title, f'/courses/{course.pk}/'),
+                ('Добавить урок', None),
+            ),
+        },
+    )

@@ -3,6 +3,7 @@ from django.http import HttpResponseForbidden
 from django.shortcuts import redirect, render
 
 from audit.services import log_action
+from core.navigation import breadcrumbs
 
 from .forms import CourseAssignmentForm
 from .models import CourseAssignment
@@ -19,7 +20,11 @@ def my_assignments(request):
         .select_related('course', 'assigned_by', 'employee', 'course__training_program', 'course__training_program__category')
         .order_by('-assigned_at')
     )
-    return render(request, 'assignments/my_assignments.html', {'assignments': assignments})
+    return render(
+        request,
+        'assignments/my_assignments.html',
+        {'assignments': assignments, 'breadcrumbs': breadcrumbs(('Главная', '/'), ('Мои назначения', None))},
+    )
 
 
 @login_required
@@ -36,7 +41,11 @@ def assignment_list(request):
     return render(
         request,
         'assignments/assignment_list.html',
-        {'assignments': assignments, 'status': status or ''},
+        {
+            'assignments': assignments,
+            'status': status or '',
+            'breadcrumbs': breadcrumbs(('Главная', '/'), ('Назначения', None)),
+        },
     )
 
 
@@ -62,4 +71,8 @@ def assignment_create(request):
             return redirect('assignments:list')
     else:
         form = CourseAssignmentForm()
-    return render(request, 'assignments/assignment_form.html', {'form': form})
+    return render(
+        request,
+        'assignments/assignment_form.html',
+        {'form': form, 'breadcrumbs': breadcrumbs(('Главная', '/'), ('Назначения', '/assignments/'), ('Создание назначения', None))},
+    )

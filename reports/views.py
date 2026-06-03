@@ -9,6 +9,7 @@ from accounts.models import Department, Profile
 from assignments.models import CourseAssignment
 from audit.services import log_action
 from courses.models import Course
+from core.navigation import breadcrumbs
 from quizzes.models import Submission
 
 
@@ -60,6 +61,26 @@ def _log_csv_export(request, report_name, description):
     )
 
 
+def _dashboard_breadcrumbs():
+    return breadcrumbs(('Главная', '/'), ('Отчеты', None))
+
+
+def _my_progress_breadcrumbs():
+    return breadcrumbs(('Главная', '/'), ('Мой прогресс', None))
+
+
+def _employee_report_breadcrumbs():
+    return breadcrumbs(('Главная', '/'), ('Отчеты', '/reports/'), ('По сотрудникам', None))
+
+
+def _department_report_breadcrumbs():
+    return breadcrumbs(('Главная', '/'), ('Отчеты', '/reports/'), ('По подразделениям', None))
+
+
+def _course_report_breadcrumbs():
+    return breadcrumbs(('Главная', '/'), ('Отчеты', '/reports/'), ('По курсам', None))
+
+
 @login_required
 def dashboard(request):
     forbidden = _require_report_access(request)
@@ -100,6 +121,7 @@ def dashboard(request):
             'selected_department': department_id or '',
             'selected_course': course_id or '',
             'selected_status': status or '',
+            'breadcrumbs': _dashboard_breadcrumbs(),
         },
     )
 
@@ -156,6 +178,7 @@ def employee_report(request):
             'selected_department': department_id or '',
             'selected_course': course_id or '',
             'selected_status': status or '',
+            'breadcrumbs': _employee_report_breadcrumbs(),
         },
     )
 
@@ -201,6 +224,7 @@ def department_report(request):
             'selected_department': department_id or '',
             'selected_course': course_id or '',
             'selected_status': status or '',
+            'breadcrumbs': _department_report_breadcrumbs(),
         },
     )
 
@@ -258,6 +282,7 @@ def course_report(request):
             'selected_department': department_id or '',
             'selected_course': course_id or '',
             'selected_status': status or '',
+            'breadcrumbs': _course_report_breadcrumbs(),
         },
     )
 
@@ -403,7 +428,11 @@ def export_course_csv(request):
 @login_required
 def my_progress(request):
     submissions = Submission.objects.filter(user=request.user).select_related('quiz').order_by('-taken_at')
-    return render(request, 'reports/my_progress.html', {'submissions': submissions})
+    return render(
+        request,
+        'reports/my_progress.html',
+        {'submissions': submissions, 'breadcrumbs': _my_progress_breadcrumbs()},
+    )
 
 
 @login_required

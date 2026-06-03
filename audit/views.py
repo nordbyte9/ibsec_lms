@@ -2,6 +2,8 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 from django.shortcuts import render
 
+from core.navigation import breadcrumbs
+
 from .models import AuditLog
 
 
@@ -29,5 +31,6 @@ def audit_log_list(request):
             'logs': logs,
             'selected_action': action or '',
             'selected_object_type': object_type or '',
+            'breadcrumbs': breadcrumbs(('Главная', '/'), ('Журнал аудита', None)),
         },
     )

@@ -2,6 +2,8 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 from django.shortcuts import render
 
+from core.navigation import breadcrumbs
+
 from .models import IntegrationSyncLog
 
 
@@ -20,5 +22,6 @@ def integration_index(request):
         'integrations/index.html',
         {
             'logs': logs,
+            'breadcrumbs': breadcrumbs(('Главная', '/'), ('Интеграции', None)),
         },
     )

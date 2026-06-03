@@ -16,14 +16,15 @@
             <li class="nav-item"><a class="nav-link" href="/reports/my/">Мой прогресс</a></li>
             {% if request.user.is_authenticated %}
               <li class="nav-item"><a class="nav-link" href="{% url 'assignments:my' %}">Мои назначения</a></li>
+              <li class="nav-item"><a class="nav-link" href="{% url 'help' %}">Справка</a></li>
               {% if request.user.profile.role == 'security_officer' or request.user.profile.role == 'admin' %}
-              <li class="nav-item"><a class="nav-link" href="{% url 'assignments:list' %}">Назначения</a></li>
-              <li class="nav-item"><a class="nav-link" href="{% url 'reports:dashboard' %}">Панель ИБ</a></li>
-              <li class="nav-item"><a class="nav-link" href="{% url 'reports:employee_report' %}">Отчеты</a></li>
-              <li class="nav-item"><a class="nav-link" href="{% url 'audit:list' %}">Журнал аудита</a></li>
-              <li class="nav-item"><a class="nav-link" href="{% url 'integrations:index' %}">Интеграции</a></li>
-              <li class="nav-item"><a class="nav-link" href="{% url 'courses:create' %}">Создать курс</a></li>
-            {% endif %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'assignments:list' %}">Назначения</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'reports:dashboard' %}">Панель ИБ</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'reports:employee_report' %}">Отчеты</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'audit:list' %}">Журнал аудита</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'integrations:index' %}">Интеграции</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'courses:create' %}">Создать курс</a></li>
+              {% endif %}
             {% endif %}
           </ul>
           <ul class="navbar-nav">
@@ -38,6 +39,19 @@
       </div>
     </nav>
     <main class="container">
+      {% if breadcrumbs %}
+      <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb mb-0">
+          {% for crumb in breadcrumbs %}
+            {% if crumb.url and not forloop.last %}
+              <li class="breadcrumb-item"><a href="{{ crumb.url }}">{{ crumb.label }}</a></li>
+            {% else %}
+              <li class="breadcrumb-item active" aria-current="page">{{ crumb.label }}</li>
+            {% endif %}
+          {% endfor %}
+        </ol>
+      </nav>
+      {% endif %}
       {% for message in messages %}
         <div class="alert alert-info">{{ message }}</div>
       {% endfor %}
