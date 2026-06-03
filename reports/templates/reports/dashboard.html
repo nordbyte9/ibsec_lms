@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}Панель ИБ{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3>Панель ИБ</h3>
+  <div class="btn-group">
+    <a class="btn btn-outline-primary" href="{% url 'reports:employee_report' %}">По сотрудникам</a>
+    <a class="btn btn-outline-primary" href="{% url 'reports:department_report' %}">По подразделениям</a>
+    <a class="btn btn-outline-primary" href="{% url 'reports:course_report' %}">По курсам</a>
+  </div>
+</div>
+
+<form method="get" class="row g-2 mb-4">
+  <div class="col-md-3">
+    <select name="department" class="form-select">
+      <option value="">Все подразделения</option>
+      {% for department in departments %}
+        <option value="{{ department.id }}" {% if selected_department == department.id|stringformat:'s' %}selected{% endif %}>{{ department.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-3">
+    <select name="course" class="form-select">
+      <option value="">Все курсы</option>
+      {% for course in courses %}
+        <option value="{{ course.id }}" {% if selected_course == course.id|stringformat:'s' %}selected{% endif %}>{{ course.title }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-3">
+    <select name="status" class="form-select">
+      <option value="">Все статусы</option>
+      <option value="assigned" {% if selected_status == 'assigned' %}selected{% endif %}>Назначено</option>
+      <option value="in_progress" {% if selected_status == 'in_progress' %}selected{% endif %}>В процессе</option>
+      <option value="completed" {% if selected_status == 'completed' %}selected{% endif %}>Завершено</option>
+      <option value="overdue" {% if selected_status == 'overdue' %}selected{% endif %}>Просрочено</option>
+    </select>
+  </div>
+  <div class="col-md-3">
+    <button class="btn btn-primary w-100">Применить</button>
+  </div>
+</form>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-4"><div class="card"><div class="card-body"><div class="text-muted">Всего сотрудников</div><div class="fs-3">{{ dashboard.employees_total }}</div></div></div></div>
+  <div class="col-md-4"><div class="card"><div class="card-body"><div class="text-muted">Всего назначений</div><div class="fs-3">{{ dashboard.assignments_total }}</div></div></div></div>
+  <div class="col-md-4"><div class="card"><div class="card-body"><div class="text-muted">Завершено</div><div class="fs-3">{{ dashboard.completed_total }}</div></div></div></div>
+  <div class="col-md-4"><div class="card"><div class="card-body"><div class="text-muted">Просрочено</div><div class="fs-3">{{ dashboard.overdue_total }}</div></div></div></div>
+  <div class="col-md-4"><div class="card"><div class="card-body"><div class="text-muted">Средний процент тестов</div><div class="fs-3">{{ dashboard.avg_percent }}%</div></div></div></div>
+</div>
+{% endblock %}
