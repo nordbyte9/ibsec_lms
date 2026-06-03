@@ -9,4 +9,6 @@ urlpatterns = [
     path('assignments/', include('assignments.urls')),
     path('quizzes/', include('quizzes.urls')),
     path('reports/', include('reports.urls')),
+    path('audit/', include('audit.urls')),
+    path('integrations/', include('integrations.urls')),
 ]

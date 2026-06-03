@@ -17,11 +17,13 @@
             {% if request.user.is_authenticated %}
               <li class="nav-item"><a class="nav-link" href="{% url 'assignments:my' %}">Мои назначения</a></li>
               {% if request.user.profile.role == 'security_officer' or request.user.profile.role == 'admin' %}
-                <li class="nav-item"><a class="nav-link" href="{% url 'assignments:list' %}">Назначения</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'reports:dashboard' %}">Панель ИБ</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'reports:employee_report' %}">Отчеты</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'courses:create' %}">Создать курс</a></li>
-              {% endif %}
+              <li class="nav-item"><a class="nav-link" href="{% url 'assignments:list' %}">Назначения</a></li>
+              <li class="nav-item"><a class="nav-link" href="{% url 'reports:dashboard' %}">Панель ИБ</a></li>
+              <li class="nav-item"><a class="nav-link" href="{% url 'reports:employee_report' %}">Отчеты</a></li>
+              <li class="nav-item"><a class="nav-link" href="{% url 'audit:list' %}">Журнал аудита</a></li>
+              <li class="nav-item"><a class="nav-link" href="{% url 'integrations:index' %}">Интеграции</a></li>
+              <li class="nav-item"><a class="nav-link" href="{% url 'courses:create' %}">Создать курс</a></li>
+            {% endif %}
             {% endif %}
           </ul>
           <ul class="navbar-nav">
