@@ -6,7 +6,9 @@ from django.utils import timezone
 
 from accounts.models import Department, Position, Profile
 from assignments.models import CourseAssignment
+from audit.services import log_action
 from courses.models import Course, Lesson, SecurityCategory, TrainingProgram
+from integrations.models import IntegrationSyncLog
 from quizzes.models import Answer, Option, Question, Quiz, Submission
 
 
@@ -210,6 +212,7 @@ class Command(BaseCommand):
             Option.objects.create(question=q3, text='Мобильный файловый архив', is_correct=False)
             Option.objects.create(question=q3, text='Межсетевой экран', is_correct=False)
 
+        created_submissions = []
         demo_attempts = [
             (employee, 1, 100.0, True),
             (employee, 2, 66.67, False),
@@ -233,8 +236,10 @@ class Command(BaseCommand):
             if not submission.answers.exists():
                 for question in quiz.questions.all():
                     Answer.objects.get_or_create(submission=submission, question=question)
+            created_submissions.append(submission)
 
         today = timezone.localdate()
+        created_assignments = []
         assignments = [
             (employee, course, admin, today + timedelta(days=14), CourseAssignment.Status.ASSIGNED),
             (employee, course, security_officer, today + timedelta(days=7), CourseAssignment.Status.IN_PROGRESS),
@@ -255,5 +260,34 @@ class Command(BaseCommand):
             assignment.status = status
             assignment.due_date = due_date
             assignment.save()
+            created_assignments.append(assignment)
+
+        audit_entries = [
+            (admin, 'course_assigned', 'CourseAssignment', created_assignments[0].pk, 'Демо: назначен курс сотруднику employee'),
+            (employee, 'quiz_submitted', 'Submission', created_submissions[0].pk, 'Демо: первая попытка теста сотрудником employee'),
+            (security_officer, 'assignment_completed', 'CourseAssignment', created_assignments[2].pk, 'Демо: завершено назначение сотрудником employee2'),
+            (admin, 'csv_export', 'Report', 'employee_report', 'Демо: экспорт отчета по сотрудникам'),
+        ]
+        for user, action, object_type, object_id, description in audit_entries:
+            log_action(user, action, object_type, object_id, description, request=None)
+
+        integration_logs = [
+            ('csv', 'success', 3, 3, 4, 'Демо: импорт оргструктуры из CSV'),
+            ('ldap', 'started', 0, 0, 0, 'Демо: подготовка LDAP-синхронизации'),
+            ('active_directory', 'failed', 0, 0, 0, 'Демо: AD-синхронизация временно недоступна'),
+        ]
+        for source, status, departments_count, positions_count, users_count, message in integration_logs:
+            log = IntegrationSyncLog.objects.create(
+                source=source,
+                status=status,
+                imported_departments=departments_count,
+                imported_positions=positions_count,
+                imported_users=users_count,
+                message=message,
+                finished_at=timezone.now() if status != 'started' else None,
+            )
+            if status == 'started':
+                log.message = message
+                log.save(update_fields=['message'])
 
         self.stdout.write(self.style.SUCCESS('Демо-данные созданы.'))
