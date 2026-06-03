@@ -177,3 +177,39 @@ Protection measures used in the project:
 - limited exposure of personal data in reports and templates.
 
 The audit journal is required to track operational actions, support accountability, and investigate access or processing events affecting training data.
+
+## —правка по демонстрации
+
+### ƒемо-аккаунты
+- `admin / admin12345`
+- `security_officer / security_officer12345`
+- `employee / employee12345`
+- `employee2 / employee22345`
+
+### ќсновные URL
+- `/` Ч главна€ страница
+- `/help/` Ч справка по системе
+- `/courses/` Ч курсы
+- `/assignments/my/` Ч мои назначени€
+- `/assignments/` Ч все назначени€
+- `/reports/` Ч панель »Ѕ
+- `/reports/employees/` Ч отчет по сотрудникам
+- `/reports/departments/` Ч отчет по подразделени€м
+- `/reports/courses/` Ч отчет по курсам
+- `/audit/` Ч журнал аудита
+- `/integrations/` Ч интеграции
+- `/admin/` Ч Django admin
+
+### ѕор€док демонстрации преподавателю
+1. ¬ойти под `security_officer`.
+2. ѕоказать курсы, назначени€ и тестирование.
+3. ќткрыть отчеты и CSV-выгрузки.
+4. ќткрыть журнал аудита.
+5. ќткрыть интеграции и пример CSV-импорта.
+6. ѕереключитьс€ на `employee` и показать личный кабинет.
+7. ѕереключитьс€ на `admin` и показать админ-панель.
+
+### «апуск тестов
+```bash
+python manage.py test
+```
