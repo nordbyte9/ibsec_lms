@@ -10,6 +10,11 @@ class CourseAssignmentForm(forms.ModelForm):
     class Meta:
         model = CourseAssignment
         fields = ['employee', 'course', 'due_date']
+        labels = {
+            'employee': 'Сотрудник',
+            'course': 'Курс',
+            'due_date': 'Срок прохождения',
+        }
         widgets = {
             'employee': forms.Select(attrs={'class': 'form-select'}),
             'course': forms.Select(attrs={'class': 'form-select'}),
