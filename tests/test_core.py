@@ -15,3 +15,13 @@ class CoreTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response['Location'], '/')
         self.assertTrue('_auth_user_id' in self.client.session)
+
+    def test_help_page_requires_authentication(self):
+        response = self.client.get('/help/')
+        self.assertEqual(response.status_code, 302)
+
+        create_user('helper', password='password123')
+        self.client.login(username='helper', password='password123')
+        response = self.client.get('/help/')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Справка по системе')
