@@ -20,6 +20,8 @@ INSTALLED_APPS = [
     'assignments',
     'quizzes',
     'reports',
+    'audit',
+    'integrations',
     'notifications'
 ]
 
