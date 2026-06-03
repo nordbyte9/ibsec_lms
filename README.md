@@ -153,3 +153,27 @@ python manage.py runserver
 - `reports` — личный прогресс, аналитика, экспорт;
 - `notifications` — модель уведомлений и отправка email;
 - `core` — главная страница и служебные команды.
+
+## Privacy and Security Notice
+
+The system stores the following categories of personal data:
+- account identifiers and contact data (`username`, `email`, names);
+- role and profile data;
+- department and position references;
+- course assignments and due dates;
+- quiz attempts, scores, and completion timestamps;
+- audit logs with IP address and user agent.
+
+Access is role-based:
+- `employee` sees only their own assignments, quiz history, and progress;
+- `security_officer` sees reports, assignments, quiz results, and audit logs for control purposes;
+- `admin` has the broadest operational access, including audit review and system administration.
+
+Protection measures used in the project:
+- Django authentication and permission checks in views;
+- role-based access control for sensitive pages;
+- password hashing handled by Django;
+- audit logging for assignments, quiz submissions, completions, and CSV exports;
+- limited exposure of personal data in reports and templates.
+
+The audit journal is required to track operational actions, support accountability, and investigate access or processing events affecting training data.
