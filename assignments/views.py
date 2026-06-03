@@ -2,6 +2,8 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 from django.shortcuts import redirect, render
 
+from audit.services import log_action
+
 from .forms import CourseAssignmentForm
 from .models import CourseAssignment
 
@@ -49,6 +51,14 @@ def assignment_create(request):
             assignment.assigned_by = request.user
             assignment.status = CourseAssignment.Status.ASSIGNED
             assignment.save()
+            log_action(
+                request.user,
+                'course_assigned',
+                'CourseAssignment',
+                assignment.pk,
+                f'Назначен курс "{assignment.course.title}" пользователю {assignment.employee.get_full_name() or assignment.employee.username}',
+                request=request,
+            )
             return redirect('assignments:list')
     else:
         form = CourseAssignmentForm()

@@ -4,6 +4,8 @@ from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
+from audit.services import log_action
+
 from assignments.models import CourseAssignment
 from courses.models import Course
 
@@ -35,6 +37,7 @@ def _update_assignment_on_pass(user, quiz):
         assignment.status = CourseAssignment.Status.COMPLETED
         assignment.completed_at = timezone.now()
         assignment.save(update_fields=['status', 'completed_at'])
+    return assignment
 
 
 @login_required
@@ -86,9 +89,26 @@ def take_quiz(request, quiz_id):
         submission.percent = percent
         submission.passed = percent >= quiz.pass_score
         submission.save(update_fields=['score', 'percent', 'passed'])
+        log_action(
+            request.user,
+            'quiz_submitted',
+            'Submission',
+            submission.pk,
+            f'Сдан тест "{quiz.title}" по курсу "{quiz.course.title}" со счетом {submission.score}/{total} ({submission.percent}%)',
+            request=request,
+        )
 
         if submission.passed:
-            _update_assignment_on_pass(request.user, quiz)
+            assignment = _update_assignment_on_pass(request.user, quiz)
+            if assignment:
+                log_action(
+                    request.user,
+                    'assignment_completed',
+                    'CourseAssignment',
+                    assignment.pk,
+                    f'Завершено назначение курса "{assignment.course.title}" для пользователя {request.user.get_full_name() or request.user.username}',
+                    request=request,
+                )
 
         return redirect('quizzes:result', submission_id=submission.id)
 

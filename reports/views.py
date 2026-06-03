@@ -7,6 +7,7 @@ from django.shortcuts import render
 
 from accounts.models import Department, Profile
 from assignments.models import CourseAssignment
+from audit.services import log_action
 from courses.models import Course
 from quizzes.models import Submission
 
@@ -48,6 +49,17 @@ def _export_csv(filename, headers, rows):
     return response
 
 
+def _log_csv_export(request, report_name, description):
+    log_action(
+        request.user,
+        'csv_export',
+        'Report',
+        report_name,
+        description,
+        request=request,
+    )
+
+
 @login_required
 def dashboard(request):
     forbidden = _require_report_access(request)
@@ -55,9 +67,14 @@ def dashboard(request):
         return forbidden
 
     department_id, course_id, status = _base_filters(request)
-    assignments = _apply_assignment_filters(CourseAssignment.objects.select_related(
-        'employee', 'employee__profile', 'employee__profile__department', 'course'
-    ), department_id, course_id, status)
+    assignments = _apply_assignment_filters(
+        CourseAssignment.objects.select_related(
+            'employee', 'employee__profile', 'employee__profile__department', 'course'
+        ),
+        department_id,
+        course_id,
+        status,
+    )
     submissions = Submission.objects.select_related('quiz', 'quiz__course', 'user').all()
     if department_id:
         submissions = submissions.filter(user__profile__department_id=department_id)
@@ -95,7 +112,13 @@ def employee_report(request):
 
     department_id, course_id, status = _base_filters(request)
     assignments = _apply_assignment_filters(
-        CourseAssignment.objects.select_related('employee', 'employee__profile', 'employee__profile__department', 'employee__profile__position', 'course'),
+        CourseAssignment.objects.select_related(
+            'employee',
+            'employee__profile',
+            'employee__profile__department',
+            'employee__profile__position',
+            'course',
+        ),
         department_id,
         course_id,
         status,
@@ -112,14 +135,16 @@ def employee_report(request):
 
     for profile in employees:
         employee_assignments = assignments.filter(employee=profile.user)
-        rows.append({
-            'employee': profile.user.get_full_name() or profile.user.username,
-            'department': profile.department.name if profile.department else '-',
-            'position': profile.position.name if profile.position else '-',
-            'assigned': employee_assignments.count(),
-            'completed': employee_assignments.filter(status=CourseAssignment.Status.COMPLETED).count(),
-            'overdue': employee_assignments.filter(status=CourseAssignment.Status.OVERDUE).count(),
-        })
+        rows.append(
+            {
+                'employee': profile.user.get_full_name() or profile.user.username,
+                'department': profile.department.name if profile.department else '-',
+                'position': profile.position.name if profile.position else '-',
+                'assigned': employee_assignments.count(),
+                'completed': employee_assignments.filter(status=CourseAssignment.Status.COMPLETED).count(),
+                'overdue': employee_assignments.filter(status=CourseAssignment.Status.OVERDUE).count(),
+            }
+        )
 
     return render(
         request,
@@ -156,13 +181,15 @@ def department_report(request):
 
     for department in departments:
         department_assignments = assignments.filter(employee__profile__department=department)
-        rows.append({
-            'department': department.name,
-            'employees_total': Profile.objects.filter(role='employee', department=department).count(),
-            'assigned': department_assignments.count(),
-            'completed': department_assignments.filter(status=CourseAssignment.Status.COMPLETED).count(),
-            'overdue': department_assignments.filter(status=CourseAssignment.Status.OVERDUE).count(),
-        })
+        rows.append(
+            {
+                'department': department.name,
+                'employees_total': Profile.objects.filter(role='employee', department=department).count(),
+                'assigned': department_assignments.count(),
+                'completed': department_assignments.filter(status=CourseAssignment.Status.COMPLETED).count(),
+                'overdue': department_assignments.filter(status=CourseAssignment.Status.OVERDUE).count(),
+            }
+        )
 
     return render(
         request,
@@ -186,7 +213,13 @@ def course_report(request):
 
     department_id, course_id, status = _base_filters(request)
     assignments = _apply_assignment_filters(
-        CourseAssignment.objects.select_related('employee', 'employee__profile', 'employee__profile__department', 'course', 'course__training_program'),
+        CourseAssignment.objects.select_related(
+            'employee',
+            'employee__profile',
+            'employee__profile__department',
+            'course',
+            'course__training_program',
+        ),
         department_id,
         course_id,
         status,
@@ -205,13 +238,15 @@ def course_report(request):
     for course in courses:
         course_assignments = assignments.filter(course=course)
         course_submissions = submissions.filter(quiz__course=course)
-        rows.append({
-            'course': course.title,
-            'program': course.training_program.title if course.training_program else '-',
-            'assigned': course_assignments.count(),
-            'completed': course_assignments.filter(status=CourseAssignment.Status.COMPLETED).count(),
-            'avg_score': round(course_submissions.aggregate(avg=Avg('score'))['avg'] or 0.0, 2),
-        })
+        rows.append(
+            {
+                'course': course.title,
+                'program': course.training_program.title if course.training_program else '-',
+                'assigned': course_assignments.count(),
+                'completed': course_assignments.filter(status=CourseAssignment.Status.COMPLETED).count(),
+                'avg_score': round(course_submissions.aggregate(avg=Avg('score'))['avg'] or 0.0, 2),
+            }
+        )
 
     return render(
         request,
@@ -235,27 +270,40 @@ def export_employee_csv(request):
 
     department_id, course_id, status = _base_filters(request)
     assignments = _apply_assignment_filters(
-        CourseAssignment.objects.select_related('employee', 'employee__profile', 'employee__profile__department', 'employee__profile__position', 'course'),
+        CourseAssignment.objects.select_related(
+            'employee',
+            'employee__profile',
+            'employee__profile__department',
+            'employee__profile__position',
+            'course',
+        ),
         department_id,
         course_id,
         status,
     )
-    employees = Profile.objects.filter(role='employee').select_related('user', 'department', 'position').order_by('user__username')
+    employees = (
+        Profile.objects.filter(role='employee')
+        .select_related('user', 'department', 'position')
+        .order_by('user__username')
+    )
     if department_id:
         employees = employees.filter(department_id=department_id)
 
     rows = []
     for profile in employees:
         employee_assignments = assignments.filter(employee=profile.user)
-        rows.append([
-            profile.user.get_full_name() or profile.user.username,
-            profile.department.name if profile.department else '',
-            profile.position.name if profile.position else '',
-            employee_assignments.count(),
-            employee_assignments.filter(status=CourseAssignment.Status.COMPLETED).count(),
-            employee_assignments.filter(status=CourseAssignment.Status.OVERDUE).count(),
-        ])
+        rows.append(
+            [
+                profile.user.get_full_name() or profile.user.username,
+                profile.department.name if profile.department else '',
+                profile.position.name if profile.position else '',
+                employee_assignments.count(),
+                employee_assignments.filter(status=CourseAssignment.Status.COMPLETED).count(),
+                employee_assignments.filter(status=CourseAssignment.Status.OVERDUE).count(),
+            ]
+        )
 
+    _log_csv_export(request, 'employee_report', 'Экспорт CSV отчета по сотрудникам')
     return _export_csv(
         'employee_report.csv',
         ['Сотрудник', 'Подразделение', 'Должность', 'Назначено', 'Завершено', 'Просрочено'],
@@ -283,14 +331,17 @@ def export_department_csv(request):
     rows = []
     for department in departments:
         department_assignments = assignments.filter(employee__profile__department=department)
-        rows.append([
-            department.name,
-            Profile.objects.filter(role='employee', department=department).count(),
-            department_assignments.count(),
-            department_assignments.filter(status=CourseAssignment.Status.COMPLETED).count(),
-            department_assignments.filter(status=CourseAssignment.Status.OVERDUE).count(),
-        ])
+        rows.append(
+            [
+                department.name,
+                Profile.objects.filter(role='employee', department=department).count(),
+                department_assignments.count(),
+                department_assignments.filter(status=CourseAssignment.Status.COMPLETED).count(),
+                department_assignments.filter(status=CourseAssignment.Status.OVERDUE).count(),
+            ]
+        )
 
+    _log_csv_export(request, 'department_report', 'Экспорт CSV отчета по подразделениям')
     return _export_csv(
         'department_report.csv',
         ['Подразделение', 'Всего сотрудников', 'Назначений', 'Завершено', 'Просрочено'],
@@ -306,7 +357,13 @@ def export_course_csv(request):
 
     department_id, course_id, status = _base_filters(request)
     assignments = _apply_assignment_filters(
-        CourseAssignment.objects.select_related('employee', 'employee__profile', 'employee__profile__department', 'course', 'course__training_program'),
+        CourseAssignment.objects.select_related(
+            'employee',
+            'employee__profile',
+            'employee__profile__department',
+            'course',
+            'course__training_program',
+        ),
         department_id,
         course_id,
         status,
@@ -325,14 +382,17 @@ def export_course_csv(request):
     for course in courses:
         course_assignments = assignments.filter(course=course)
         course_submissions = submissions.filter(quiz__course=course)
-        rows.append([
-            course.title,
-            course.training_program.title if course.training_program else '',
-            course_assignments.count(),
-            course_assignments.filter(status=CourseAssignment.Status.COMPLETED).count(),
-            round(course_submissions.aggregate(avg=Avg('score'))['avg'] or 0.0, 2),
-        ])
+        rows.append(
+            [
+                course.title,
+                course.training_program.title if course.training_program else '',
+                course_assignments.count(),
+                course_assignments.filter(status=CourseAssignment.Status.COMPLETED).count(),
+                round(course_submissions.aggregate(avg=Avg('score'))['avg'] or 0.0, 2),
+            ]
+        )
 
+    _log_csv_export(request, 'course_report', 'Экспорт CSV отчета по курсам')
     return _export_csv(
         'course_report.csv',
         ['Курс', 'Программа ИБ', 'Назначено', 'Завершено', 'Средний балл'],
