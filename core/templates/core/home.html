@@ -1,11 +1,188 @@
 {% extends 'base.html' %}
 {% block title %}Главная{% endblock %}
 {% block content %}
-<div class="p-5 mb-4 bg-light rounded-3">
-  <div class="container-fluid py-5">
-    <h1 class="display-6">Система обучения по информационной безопасности</h1>
-    <p class="col-md-8 fs-5">Изучайте курсы, проходите тестирование и отслеживайте прогресс.</p>
-    <a class="btn btn-primary btn-lg" href="/courses/">Перейти к курсам</a>
+{% if user.is_authenticated %}
+  <div class="home-hero card mb-4">
+    <div class="card-body home-hero__body">
+      <div class="home-hero__content">
+        <div class="home-kicker">Корпоративная LMS</div>
+        <h1 class="home-title">Обучение сотрудников по ИБ</h1>
+        <p class="home-subtitle">Изучайте курсы, проходите тестирование и отслеживайте прогресс.</p>
+        <div class="home-actions">
+          <a class="btn btn-primary btn-lg" href="/courses/">Перейти к курсам</a>
+          <a class="btn btn-outline-primary btn-lg" href="/reports/my/">Мой прогресс</a>
+        </div>
+      </div>
+      <div class="home-hero__panel">
+        <div class="home-panel__label">Сейчас в системе</div>
+        <div class="home-panel__stats">
+          <div class="home-panel__stat">
+            <span class="home-panel__stat-value">{{ available_courses_count }}</span>
+            <span class="home-panel__stat-label">Доступных курсов</span>
+          </div>
+          <div class="home-panel__stat">
+            <span class="home-panel__stat-value">{{ assigned_courses_count }}</span>
+            <span class="home-panel__stat-label">Назначений</span>
+          </div>
+          <div class="home-panel__stat">
+            <span class="home-panel__stat-value">{{ completed_tests_count }}</span>
+            <span class="home-panel__stat-label">Пройдено тестов</span>
+          </div>
+        </div>
+        <div class="home-panel__note">
+          {{ request.user.username }}, здесь собраны ключевые разделы для вашей роли.
+        </div>
+      </div>
+    </div>
   </div>
-</div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card home-metric-card h-100">
+        <div class="card-body">
+          <div class="home-metric__label">Доступные курсы</div>
+          <div class="home-metric__value">{{ available_courses_count }}</div>
+          <div class="home-metric__text">Каталог актуальных материалов и программ ИБ.</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card home-metric-card h-100">
+        <div class="card-body">
+          <div class="home-metric__label">Назначенные курсы</div>
+          <div class="home-metric__value">{{ assigned_courses_count }}</div>
+          <div class="home-metric__text">Личный план обязательного обучения и сроки прохождения.</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card home-metric-card h-100">
+        <div class="card-body">
+          <div class="home-metric__label">Пройдено тестов</div>
+          <div class="home-metric__value">{{ completed_tests_count }}</div>
+          <div class="home-metric__text">История попыток и результаты проверки знаний.</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card home-metric-card h-100">
+        <div class="card-body">
+          <div class="home-metric__label">Отчёты и контроль</div>
+          <div class="home-metric__value">{% if can_view_reports %}Доступны{% else %}По роли{% endif %}</div>
+          <div class="home-metric__text">Сводка по обучению, статусам и аудиту действий.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-lg-3 col-md-6">
+      <div class="card home-feature-card h-100">
+        <div class="card-body">
+          <div class="home-feature__title">Курсы и материалы</div>
+          <div class="home-feature__text">Единый каталог учебных программ, уроков и обязательных тем.</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+      <div class="card home-feature-card h-100">
+        <div class="card-body">
+          <div class="home-feature__title">Тестирование</div>
+          <div class="home-feature__text">Проверка знаний с ограничением попыток и контрольным порогом.</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+      <div class="card home-feature-card h-100">
+        <div class="card-body">
+          <div class="home-feature__title">Контроль прохождения</div>
+          <div class="home-feature__text">Назначения, сроки, статусы и завершение обучения по факту сдачи.</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+      <div class="card home-feature-card h-100">
+        <div class="card-body">
+          <div class="home-feature__title">Отчёты и аналитика</div>
+          <div class="home-feature__text">Панель ИБ, отчёты по сотрудникам, подразделениям и курсам.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% else %}
+  <div class="home-hero card mb-4">
+    <div class="card-body home-hero__body home-hero__body--guest">
+      <div class="home-hero__content">
+        <div class="home-kicker">Корпоративная LMS</div>
+        <h1 class="home-title">Обучение сотрудников по ИБ</h1>
+        <p class="home-subtitle">Изучайте курсы, проходите тестирование и отслеживайте прогресс.</p>
+        <div class="home-actions">
+          <a class="btn btn-primary btn-lg" href="/accounts/login/">Войти</a>
+          <a class="btn btn-outline-primary btn-lg" href="/courses/">Посмотреть курсы</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4 home-guest-features">
+    <div class="col-lg-3 col-md-6">
+      <div class="card home-feature-card h-100">
+        <div class="card-body">
+          <div class="home-feature__title">Обязательное обучение</div>
+          <div class="home-feature__text">Автоматическое назначение курсов сотрудникам по правилам компании.</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+      <div class="card home-feature-card h-100">
+        <div class="card-body">
+          <div class="home-feature__title">Тестирование знаний</div>
+          <div class="home-feature__text">Проверка знаний с порогом прохождения и ограничением попыток.</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+      <div class="card home-feature-card h-100">
+        <div class="card-body">
+          <div class="home-feature__title">Отчётность для ИБ</div>
+          <div class="home-feature__text">Контроль прохождения, просрочек и результатов по подразделениям.</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+      <div class="card home-feature-card h-100">
+        <div class="card-body">
+          <div class="home-feature__title">Интеграция с оргструктурой</div>
+          <div class="home-feature__text">Импорт сотрудников, подразделений и должностей из CSV и LDAP.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-4 home-audience-card">
+    <div class="card-body">
+      <div class="section-title mb-3">Для кого система</div>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="home-audience-item">
+            <div class="home-audience-item__title">Сотрудники</div>
+            <div class="home-audience-item__text">Проходят назначенные курсы и тесты в личном кабинете.</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="home-audience-item">
+            <div class="home-audience-item__title">Ответственный за ИБ</div>
+            <div class="home-audience-item__text">Назначает обучение и контролирует прохождение по отчетам.</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="home-audience-item">
+            <div class="home-audience-item__title">Администратор</div>
+            <div class="home-audience-item__text">Управляет пользователями, курсами, интеграциями и настройками.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endif %}
 {% endblock %}
