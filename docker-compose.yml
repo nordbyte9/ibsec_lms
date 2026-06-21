@@ -1,0 +1,109 @@
+name: ibsec-lms
+
+services:
+  db:
+    image: postgres:18.4-alpine
+    restart: unless-stopped
+    stop_grace_period: 30s
+    shm_size: 128mb
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-ibsec_lms}
+      POSTGRES_USER: ${POSTGRES_USER:-ibsec_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.docker}
+      POSTGRES_INITDB_ARGS: --encoding=UTF8
+      PGDATA: /var/lib/postgresql/18/docker
+      LANG: C.UTF-8
+    volumes:
+      - postgres18_data:/var/lib/postgresql
+    ports:
+      - "127.0.0.1:${POSTGRES_HOST_PORT:-55432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+    networks:
+      - backend
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    init: true
+    environment:
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env.docker}
+      DEBUG: ${DEBUG:-False}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1}
+      CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:-http://localhost:8000,http://127.0.0.1:8000}
+      DATABASE_URL: ""
+      DB_ENGINE: postgresql
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: ${POSTGRES_DB:-ibsec_lms}
+      DB_USER: ${POSTGRES_USER:-ibsec_user}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.docker}
+      DB_CONN_MAX_AGE: ${DB_CONN_MAX_AGE:-60}
+      DB_CONN_HEALTH_CHECKS: "True"
+      RUN_MIGRATIONS: ${RUN_MIGRATIONS:-True}
+      COLLECT_STATIC: ${COLLECT_STATIC:-True}
+      LOAD_DEMO_DATA: ${LOAD_DEMO_DATA:-False}
+      GUNICORN_WORKERS: ${GUNICORN_WORKERS:-3}
+      GUNICORN_THREADS: ${GUNICORN_THREADS:-2}
+      GUNICORN_TIMEOUT: ${GUNICORN_TIMEOUT:-60}
+      GUNICORN_LOG_LEVEL: ${GUNICORN_LOG_LEVEL:-info}
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+    volumes:
+      - static_data:/app/staticfiles
+      - media_data:/app/media
+    expose:
+      - "8000"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/', timeout=3).read()"
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 45s
+    networks:
+      - backend
+      - frontend
+
+  nginx:
+    image: nginx:1.30.2-alpine
+    restart: unless-stopped
+    depends_on:
+      web:
+        condition: service_healthy
+        restart: true
+    ports:
+      - "8000:80"
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - static_data:/var/www/static:ro
+      - media_data:/var/www/media:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://127.0.0.1/health/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
+    networks:
+      - frontend
+
+volumes:
+  postgres18_data:
+  static_data:
+  media_data:
+
+networks:
+  backend:
+    internal: true
+  frontend:

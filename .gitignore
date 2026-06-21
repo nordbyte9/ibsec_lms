@@ -13,8 +13,14 @@ db.sqlite3
 media/
 staticfiles/
 
-# Environment
+# Environment and secrets
 .env
+.env.*
+!.env.example
+!.env.docker.example
+
+# Database backups
+*.sql
 
 # IDE
 .idea/

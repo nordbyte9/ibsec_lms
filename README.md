@@ -38,7 +38,10 @@
 
 - Git и GitHub;
 - `.env` и переменные окружения для конфигурации приложения и базы данных;
-- Docker и Docker Compose — запланированы;
+- Docker и Docker Compose;
+- Gunicorn;
+- Nginx;
+- PostgreSQL 18.4 в отдельном контейнере;
 - GitHub Actions — запланирован.
 
 > В проекте не используются Flask, Flask-Login, SQLAlchemy и Alembic. Управление моделями и схемой базы данных выполняется средствами Django ORM и Django Migrations.
@@ -133,6 +136,48 @@ DB_PASSWORD=password
 - Django Admin;
 - раздел справки.
 
+## Запуск через Docker Compose
+
+Docker-окружение включает PostgreSQL 18.4, Django/Gunicorn и Nginx. Архив уже содержит локальный файл `.env.docker` с демонстрационными параметрами, поэтому для первого запуска достаточно:
+
+```powershell
+.\docker\start-demo.ps1
+```
+
+Либо вручную:
+
+```powershell
+docker compose --env-file .env.docker up --build -d
+docker compose --env-file .env.docker ps
+```
+
+Для Linux/macOS:
+
+```bash
+./docker/start-demo.sh
+```
+
+Приложение будет доступно по адресу `http://localhost:8000/`. PostgreSQL контейнера доступен только с локального компьютера по адресу `localhost:55432`, поэтому он не конфликтует с установленным PostgreSQL на порту 5432. При первом запуске автоматически применяются Django-миграции, выполняется `collectstatic` и загружаются демонстрационные данные.
+
+В готовом `.env.docker` установлено `LOAD_DEMO_DATA=True`. При первом запуске команда `seed_demo_once` создаёт пользователей, курс, уроки, тест, назначения, результаты и записи аудита. При повторном запуске данные не дублируются.
+
+Демонстрационные аккаунты:
+
+| Роль | Логин | Пароль |
+|---|---|---|
+| Администратор | `admin` | `admin12345` |
+| Ответственный за ИБ | `security_officer` | `security_officer12345` |
+| Сотрудник | `employee` | `employee12345` |
+| Сотрудник 2 | `employee2` | `employee22345` |
+
+Проверка окружения:
+
+```powershell
+.\docker\verify-demo.ps1
+```
+
+Подробная инструкция: `docs/docker_deployment.md`.
+
 ## Локальный запуск
 
 ```bash
@@ -181,6 +226,8 @@ python manage.py showmigrations
 
 - клиент-серверное веб-приложение;
 - PostgreSQL как основная СУБД и SQLite fallback;
+- Docker Compose с PostgreSQL 18.4, Gunicorn и Nginx;
+- healthchecks и persistent volumes;
 - три роли;
 - личный кабинет;
 - административная панель;
@@ -191,7 +238,6 @@ python manage.py showmigrations
 
 Требуют завершения:
 
-- Docker и Docker Compose;
 - экспорт XLSX и формирование DOCX;
 - формальный подсчет логических строк;
 - GitHub Actions;

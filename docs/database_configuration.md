@@ -148,3 +148,13 @@ python manage.py test
 ## Почему используется Django Migrations
 
 Проект работает на Django ORM, поэтому схема SQLite и PostgreSQL управляется одним набором Django-миграций. Alembic не требуется.
+
+## Docker: PostgreSQL 18
+
+Docker Compose использует официальный образ `postgres:18.4-alpine`. Внутри сети Compose Django подключается к `db:5432`. Для локальной диагностики база доступна на `127.0.0.1:55432`, чтобы не конфликтовать с локальным PostgreSQL на порту 5432.
+
+```powershell
+psql -h localhost -p 55432 -U ibsec_user -d ibsec_lms
+```
+
+Путь данных PostgreSQL 18: `/var/lib/postgresql/18/docker`; именованный volume монтируется в `/var/lib/postgresql`.

@@ -20,7 +20,7 @@
 | Работа с файловой системой | загрузка файлов через Django `FileField` | Частично |
 | Журнал аудита | приложение `audit` | Выполнено |
 | Не менее десяти экранных форм | в проекте присутствует более десяти страниц | Выполнено, требуется формальный реестр |
-| Docker | отсутствует | Не выполнено |
+| Docker | Dockerfile, Docker Compose, PostgreSQL 18.4, Gunicorn, Nginx, healthchecks и volumes | Выполнено |
 | CI/CD | GitHub Actions отсутствует | Не выполнено |
 | Исходный код в Git | GitHub, отдельная рабочая ветка | Выполнено |
 
@@ -36,6 +36,9 @@ Django Templates
 PostgreSQL + SQLite fallback
 PostgreSQL driver: psycopg2-binary
 Environment loader: python-dotenv
+Docker Compose
+Gunicorn
+Nginx
 Bootstrap 5
 HTML/CSS/JavaScript
 ```
