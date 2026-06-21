@@ -1,7 +1,15 @@
 from pathlib import Path
+
 import os
+from dotenv import load_dotenv
+
+from .database import build_database_config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Local .env is convenient for development. Real operating-system variables
+# keep priority because override=False.
+load_dotenv(BASE_DIR / '.env', override=False)
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-change-this-in-production')
 
@@ -16,6 +24,7 @@ def _env_list(name, default=''):
 
 
 DEBUG = _env_bool('DEBUG', 'True')
+
 ALLOWED_HOSTS = _env_list('ALLOWED_HOSTS', '127.0.0.1,localhost')
 CSRF_TRUSTED_ORIGINS = _env_list('CSRF_TRUSTED_ORIGINS')
 
@@ -68,25 +77,8 @@ TEMPLATES = [
 WSGI_APPLICATION = 'ibsec_lms.wsgi.application'
 ASGI_APPLICATION = 'ibsec_lms.asgi.application'
 
-# SQLite по умолчанию (для демонстрации)
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
-# Для PostgreSQL (пример)
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'ibsec_lms',
-#         'USER': 'postgres',
-#         'PASSWORD': 'postgres',
-#         'HOST': 'localhost',
-#         'PORT': '5432',
-#     }
-# }
+# Priority: DATABASE_URL -> DB_ENGINE=postgresql + DB_* -> SQLite fallback.
+DATABASES = build_database_config(BASE_DIR)
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -103,11 +95,14 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
