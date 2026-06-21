@@ -1,29 +1,55 @@
-# Requirements Mapping
+# Сопоставление требований ПДП и реализации IBSec LMS
 
-| Requirement of practice | Implemented in project |
-|---|---|
-| Django/Python stack | Django 4.2.13 on Python 3, with Django ORM and template-based UI |
-| SQL database | SQLite by default, PostgreSQL supported via settings |
-| Three user roles | `employee`, `security_officer`, `admin` |
-| Personal account | Profile page, personal assignments, personal progress, personal quiz history |
-| Admin panel | Django admin with domain models registered |
-| Mandatory training assignments | `assignments` app with course assignment lifecycle |
-| Testing / quiz control | `quizzes` app with attempts, scores, pass threshold, and limits |
-| Reporting | `reports` app with dashboard and CSV exports |
-| Audit log | `audit` app with action logging and audit journal page |
-| CSV / LDAP / AD integrations | `integrations` app with CSV import command and LDAP/AD placeholders |
-| Deploy documentation | `docs/deploy.md`, `.env.example`, static/media production settings |
-| Tests | Django test suite covering access, audit, integration import, and core flows |
+| Требование | Фактическая реализация | Статус |
+|---|---|---|
+| Клиент-серверная архитектура | Django-приложение, браузерный клиент, HTTP-маршруты, серверные шаблоны | Выполнено |
+| Язык и фреймворк | Python 3, Django 4.2.13 | Выполнено |
+| ORM | Django ORM | Выполнено |
+| Миграции | Django Migrations | Выполнено |
+| SQL-СУБД | PostgreSQL как основная СУБД, SQLite как fallback | Выполнено |
+| PostgreSQL | `DATABASE_URL` или `DB_ENGINE=postgresql` с `DB_*` | Выполнено |
+| Не менее трех ролей | `employee`, `security_officer`, `admin` | Выполнено |
+| Личный кабинет | профиль, назначения, прогресс и результаты | Выполнено |
+| Административная панель | Django Admin | Выполнено |
+| Раздел справки | отдельная страница `/help/` | Выполнено |
+| Курсы и материалы | приложения `courses` и `lessons`, текстовые, ссылочные и файловые уроки | Выполнено |
+| Тестирование | приложение `quizzes`, вопросы, варианты, попытки и результаты | Выполнено |
+| Назначение обучения | приложение `assignments` | Выполнено |
+| Отчетность | приложение `reports`, экранные отчеты и CSV | Частично |
+| Формирование XLSX/DOCX | отсутствует | Не выполнено |
+| Работа с файловой системой | загрузка файлов через Django `FileField` | Частично |
+| Журнал аудита | приложение `audit` | Выполнено |
+| Не менее десяти экранных форм | в проекте присутствует более десяти страниц | Выполнено, требуется формальный реестр |
+| Docker | отсутствует | Не выполнено |
+| CI/CD | GitHub Actions отсутствует | Не выполнено |
+| Исходный код в Git | GitHub, отдельная рабочая ветка | Выполнено |
 
-## Expanded mapping
+## Фактический стек
 
-| Practice item | Functional coverage |
-|---|---|
-| User management | Roles, profile, department, position, authentication, and access control |
-| Corporate structure | Departments and positions stored as separate models and used in reports and imports |
-| Mandatory learning | Training programs, course targeting, assignments, deadlines, and completion tracking |
-| Control and supervision | Dashboard, employee/dept/course reports, CSV export, and audit journal |
-| External data loading | CSV org-structure import and future LDAP/AD integration scaffold |
-| Production readiness | Env-driven settings, `collectstatic`, deploy guide, release checklist |
-| Quality assurance | Smoke checklist and automated Django tests |
+```text
+Python 3
+Django 4.2.13
+Django ORM
+Django Authentication
+Django Migrations
+Django Templates
+PostgreSQL + SQLite fallback
+PostgreSQL driver: psycopg2-binary
+Environment loader: python-dotenv
+Bootstrap 5
+HTML/CSS/JavaScript
+```
 
+## Неиспользуемые технологии
+
+Следующие технологии не относятся к текущей реализации и не должны указываться в отчете:
+
+```text
+Flask
+Flask-Login
+SQLAlchemy
+Alembic
+Jinja2 как отдельный шаблонизатор
+```
+
+Django Templates синтаксически родственны Jinja-подобным шаблонам, но в проекте используется именно встроенный шаблонный движок Django.
