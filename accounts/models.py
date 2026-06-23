@@ -23,14 +23,25 @@ class Position(models.Model):
 
 
 class Profile(models.Model):
-    ROLE_CHOICES = [
-        ('employee', 'Сотрудник'),
-        ('security_officer', 'Ответственный за ИБ'),
-        ('admin', 'Администратор'),
-    ]
+    class Role(models.TextChoices):
+        EMPLOYEE = 'employee', 'Сотрудник'
+        SECURITY_OFFICER = 'security_officer', 'Ответственный за ИБ'
+        ADMIN = 'admin', 'Администратор'
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='employee')
+    # Совместимость с существующим кодом, который использует
+    # Profile.ROLE_CHOICES.
+    ROLE_CHOICES = Role.choices
+
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='profile',
+    )
+    role = models.CharField(
+        max_length=20,
+        choices=Role.choices,
+        default=Role.EMPLOYEE,
+    )
     department = models.ForeignKey(
         Department,
         on_delete=models.SET_NULL,
