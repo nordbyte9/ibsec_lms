@@ -1,66 +1,90 @@
 {% extends 'base.html' %}
+
 {% block title %}Отчет по сотрудникам{% endblock %}
+
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h3>Отчет по сотрудникам</h3>
-  <a class="btn btn-outline-primary" href="{% url 'reports:employee_export_csv' %}?department={{ selected_department }}&course={{ selected_course }}&status={{ selected_status }}">CSV</a>
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h1 class="h3 mb-0">Отчет по сотрудникам</h1>
+    <div class="btn-group" role="group" aria-label="Экспорт отчета">
+        <a class="btn btn-outline-secondary"
+           href="{% url 'reports:employee_export_csv' %}?department={{ selected_department }}&course={{ selected_course }}&status={{ selected_status }}">
+            CSV
+        </a>
+        <a class="btn btn-success"
+           href="{% url 'reports:training_registry_xlsx' %}?department={{ selected_department }}&course={{ selected_course }}&status={{ selected_status }}">
+            XLSX-реестр
+        </a>
+    </div>
 </div>
-<form method="get" class="row g-2 mb-4">
-  <div class="col-md-4">
-    <select name="department" class="form-select">
-      <option value="">Все подразделения</option>
-      {% for department in departments %}
-        <option value="{{ department.id }}" {% if selected_department == department.id|stringformat:'s' %}selected{% endif %}>{{ department.name }}</option>
-      {% endfor %}
-    </select>
-  </div>
-  <div class="col-md-4">
-    <select name="course" class="form-select">
-      <option value="">Все курсы</option>
-      {% for course in courses %}
-        <option value="{{ course.id }}" {% if selected_course == course.id|stringformat:'s' %}selected{% endif %}>{{ course.title }}</option>
-      {% endfor %}
-    </select>
-  </div>
-  <div class="col-md-3">
-    <select name="status" class="form-select">
-      <option value="">Все статусы</option>
-      <option value="assigned" {% if selected_status == 'assigned' %}selected{% endif %}>Назначено</option>
-      <option value="in_progress" {% if selected_status == 'in_progress' %}selected{% endif %}>В процессе</option>
-      <option value="completed" {% if selected_status == 'completed' %}selected{% endif %}>Завершено</option>
-      <option value="overdue" {% if selected_status == 'overdue' %}selected{% endif %}>Просрочено</option>
-    </select>
-  </div>
-  <div class="col-md-1">
-    <button class="btn btn-primary w-100">OK</button>
-  </div>
+
+<form method="get" class="card card-body mb-4">
+    <div class="row g-3 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label" for="department">Подразделение</label>
+            <select class="form-select" id="department" name="department">
+                <option value="">Все подразделения</option>
+                {% for department in departments %}
+                    <option value="{{ department.pk }}" {% if selected_department == department.pk|stringformat:'s' %}selected{% endif %}>
+                        {{ department.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label" for="course">Курс</label>
+            <select class="form-select" id="course" name="course">
+                <option value="">Все курсы</option>
+                {% for course in courses %}
+                    <option value="{{ course.pk }}" {% if selected_course == course.pk|stringformat:'s' %}selected{% endif %}>
+                        {{ course.title }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label" for="status">Статус</label>
+            <select class="form-select" id="status" name="status">
+                <option value="">Все статусы</option>
+                <option value="assigned" {% if selected_status == 'assigned' %}selected{% endif %}>Назначено</option>
+                <option value="in_progress" {% if selected_status == 'in_progress' %}selected{% endif %}>В процессе</option>
+                <option value="completed" {% if selected_status == 'completed' %}selected{% endif %}>Завершено</option>
+                <option value="overdue" {% if selected_status == 'overdue' %}selected{% endif %}>Просрочено</option>
+            </select>
+        </div>
+        <div class="col-md-1 d-grid">
+            <button class="btn btn-primary" type="submit">OK</button>
+        </div>
+    </div>
 </form>
+
 <div class="table-responsive">
-  <table class="table table-striped align-middle">
-    <thead>
-      <tr>
-        <th>Сотрудник</th>
-        <th>Подразделение</th>
-        <th>Должность</th>
-        <th>Назначено курсов</th>
-        <th>Завершено</th>
-        <th>Просрочено</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for row in rows %}
-      <tr>
-        <td>{{ row.employee }}</td>
-        <td>{{ row.department }}</td>
-        <td>{{ row.position }}</td>
-        <td>{{ row.assigned }}</td>
-        <td>{{ row.completed }}</td>
-        <td>{{ row.overdue }}</td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="6">Нет данных.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+    <table class="table table-striped table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Сотрудник</th>
+                <th>Подразделение</th>
+                <th>Должность</th>
+                <th class="text-center">Назначено курсов</th>
+                <th class="text-center">Завершено</th>
+                <th class="text-center">Просрочено</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in rows %}
+                <tr>
+                    <td>{{ row.employee }}</td>
+                    <td>{{ row.department }}</td>
+                    <td>{{ row.position }}</td>
+                    <td class="text-center">{{ row.assigned }}</td>
+                    <td class="text-center">{{ row.completed }}</td>
+                    <td class="text-center">{{ row.overdue }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-4">Нет данных.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 {% endblock %}

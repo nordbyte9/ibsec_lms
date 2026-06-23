@@ -106,3 +106,11 @@ LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Generated document metadata. These values can be overridden in .env.
+DOCUMENT_ORGANIZATION_NAME = os.getenv('DOCUMENT_ORGANIZATION_NAME', 'IBSec LMS')
+DOCUMENT_SIGNER_TITLE = os.getenv(
+    'DOCUMENT_SIGNER_TITLE',
+    'Ответственный за информационную безопасность',
+)
+DOCUMENT_SIGNER_NAME = os.getenv('DOCUMENT_SIGNER_NAME', '')
