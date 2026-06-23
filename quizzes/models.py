@@ -1,17 +1,22 @@
-from django.db import models
 from django.contrib.auth.models import User
-from courses.models import Course
+from django.db import models
 from django.utils import timezone
+
+from courses.models import Course
+
 
 class Quiz(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='quizzes')
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-    pass_score = models.PositiveIntegerField(default=70)  # %
+    pass_score = models.PositiveIntegerField(default=70)
+    time_limit_minutes = models.PositiveIntegerField(default=20)
+    max_attempts = models.PositiveIntegerField(default=3)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return f'{self.course.title} — {self.title}'
+
 
 class Question(models.Model):
     quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='questions')
@@ -19,6 +24,7 @@ class Question(models.Model):
 
     def __str__(self):
         return self.text[:50]
+
 
 class Option(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='options')
@@ -28,14 +34,16 @@ class Option(models.Model):
     def __str__(self):
         return self.text[:50]
 
+
 class Submission(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='submissions')
     quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='submissions')
-    score = models.FloatField(default=0.0)  # в процентах
+    score = models.PositiveIntegerField(default=0)
+    percent = models.FloatField(default=0.0)
+    passed = models.BooleanField(default=False)
     taken_at = models.DateTimeField(default=timezone.now)
+    attempt_number = models.PositiveIntegerField(default=1)
 
-    def passed(self):
-        return self.score >= self.quiz.pass_score
 
 class Answer(models.Model):
     submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name='answers')

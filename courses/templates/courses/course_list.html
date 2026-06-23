@@ -3,7 +3,7 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h3>Курсы</h3>
-  {% if request.user.profile.role == 'instructor' or request.user.profile.role == 'admin' %}
+  {% if request.user.profile.role == 'security_officer' or request.user.profile.role == 'admin' %}
   <a class="btn btn-sm btn-outline-primary" href="{% url 'courses:create' %}">Создать курс</a>
   {% endif %}
 </div>
@@ -14,6 +14,17 @@
       <div class="card-body">
         <h5 class="card-title">{{ c.title }}</h5>
         <p class="card-text">{{ c.description|truncatewords:30 }}</p>
+        <div class="small text-muted mb-2">
+          {% if c.training_program %}
+            Программа: {{ c.training_program.title }} · Категория: {{ c.training_program.category.name }}
+          {% else %}
+            Программа не назначена
+          {% endif %}
+        </div>
+        <div class="small mb-3">
+          {% if c.is_mandatory %}<span class="badge bg-danger">Обязательный</span>{% endif %}
+          {% if c.validity_days %}<span class="badge bg-secondary">Срок: {{ c.validity_days }} дн.</span>{% endif %}
+        </div>
         <a class="btn btn-primary" href="{% url 'courses:detail' c.pk %}">Открыть</a>
       </div>
     </div>

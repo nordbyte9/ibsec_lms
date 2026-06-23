@@ -1,88 +1,37 @@
-# Deployment
+# Развёртывание
 
-Этот документ описывает базовые шаги для локального запуска проекта и подготовки к продакшну.
-
-## 1. Как создать виртуальное окружение
+## Локальная разработка
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-```
-
-Для Windows:
-
-```bash
-.venv\Scripts\activate
-```
-
-## 2. Как установить зависимости
-
-```bash
-pip install -r requirements.txt
-```
-
-Если используется `pip-tools`, `poetry` или другой менеджер зависимостей, добавьте сюда нужную команду.
-
-## 3. Как применить миграции
-
-```bash
+python -m pip install -r requirements.txt
+cp .env.example .env
 python manage.py migrate
-```
-
-## 4. Заполнение демо-данными
-
-```bash
-python manage.py seed_demo
-```
-
-## 5. Как создать суперпользователя
-
-```bash
 python manage.py createsuperuser
-```
-
-## 6. Как запустить сервер
-
-```bash
 python manage.py runserver
 ```
 
-По умолчанию сервер будет доступен по адресу:
+В Windows используйте `.venv\Scripts\Activate.ps1` и `Copy-Item .env.example .env`.
 
-```text
-http://127.0.0.1:8000/
-```
+## Docker Compose
 
-## 7. Сборка статических файлов
+Основная инструкция: [../docker_deployment.md](../docker_deployment.md).
 
 ```bash
-python manage.py collectstatic
+cp .env.docker.example .env.docker
+docker compose --env-file .env.docker up --build -d
+docker compose --env-file .env.docker exec web python manage.py createsuperuser
 ```
 
-## 8. Что нужно для продакшна
+## Контроль перед публикацией
 
-Перед деплоем необходимо проверить следующее:
-
-- настроены переменные окружения;
-- задан SECRET_KEY;
-- установлен DEBUG=False;
-- заполнен ALLOWED_HOSTS;
-- настроена база данных;
-- для production рекомендуется использовать PostgreSQL;
-- выполнена сборка статических файлов;
-- настроен веб-сервер, например Nginx;
-- настроен WSGI/ASGI-сервер, например Gunicorn или Uvicorn;
-- включены HTTPS, логирование и резервное копирование.
-
-## 9. Переменные окружения
-
-Для продакшна рекомендуется вынести настройки в переменные окружения, например:
-
-- SECRET_KEY
-- DEBUG
-- ALLOWED_HOSTS
-- DB_NAME
-- DB_USER
-- DB_PASSWORD
-- DB_HOST
-- DB_PORT
+- `DEBUG=False`;
+- `SECRET_KEY` хранится вне Git;
+- `ALLOWED_HOSTS` содержит только рабочие домены;
+- `CSRF_TRUSTED_ORIGINS` использует HTTPS-адреса;
+- настроена PostgreSQL;
+- применены миграции;
+- выполнен `collectstatic`;
+- настроены HTTPS, резервное копирование и централизованные логи;
+- демонстрационный override не используется.

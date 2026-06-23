@@ -1,8 +1,29 @@
 {% extends 'base.html' %}
 {% block title %}Профиль{% endblock %}
 {% block content %}
-<h3>Профиль</h3>
-<p><b>Пользователь:</b> {{ request.user.get_full_name|default:request.user.username }}</p>
-<p><b>Роль:</b> {{ request.user.profile.get_role_display }}</p>
-<p><b>E-mail:</b> {{ request.user.email }}</p>
+<div class="row">
+  <div class="col-lg-8">
+    <h3 class="mb-3">Профиль</h3>
+    <div class="card mb-4">
+      <div class="card-body">
+        <p class="mb-2"><b>Пользователь:</b> {{ request.user.get_full_name|default:request.user.username }}</p>
+        <p class="mb-2"><b>Роль:</b> {{ profile_obj.get_role_display }}</p>
+        <p class="mb-2"><b>E-mail:</b> {{ request.user.email }}</p>
+        <p class="mb-2"><b>Подразделение:</b> {{ profile_obj.department|default:"-" }}</p>
+        <p class="mb-0"><b>Должность:</b> {{ profile_obj.position|default:"-" }}</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title mb-3">Данные профиля</h5>
+        <form method="post">
+          {% csrf_token %}
+          {{ form.as_p }}
+          <button class="btn btn-primary">Сохранить</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

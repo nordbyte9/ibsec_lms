@@ -1,0 +1,11 @@
+name: ibsec-lms-demo
+
+services:
+  web:
+    environment:
+      DJANGO_SETTINGS_MODULE: ibsec_lms.settings_demo
+      DEMO_ADMIN_PASSWORD: ${DEMO_ADMIN_PASSWORD:?Set DEMO_ADMIN_PASSWORD in demo/.env}
+      DEMO_SECURITY_OFFICER_PASSWORD: ${DEMO_SECURITY_OFFICER_PASSWORD:?Set DEMO_SECURITY_OFFICER_PASSWORD in demo/.env}
+      DEMO_EMPLOYEE_PASSWORD: ${DEMO_EMPLOYEE_PASSWORD:?Set DEMO_EMPLOYEE_PASSWORD in demo/.env}
+      DEMO_EMPLOYEE2_PASSWORD: ${DEMO_EMPLOYEE2_PASSWORD:?Set DEMO_EMPLOYEE2_PASSWORD in demo/.env}
+    command: ["/app/demo/start-web.sh"]

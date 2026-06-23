@@ -1,0 +1,4 @@
+username,email,first_name,last_name,department,position,role
+employee3,employee3@example.com,Иван,Петров,ИТ-отдел,Системный администратор,employee
+security2,security2@example.com,Анна,Смирнова,Отдел информационной безопасности,Специалист по ИБ,security_officer
+hr1,hr1@example.com,Ольга,Иванова,Отдел кадров,Менеджер по персоналу,employee

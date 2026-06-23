@@ -1,11 +1,21 @@
 {% extends 'base.html' %}
 {% block title %}Результат теста{% endblock %}
 {% block content %}
-<h3>Результат: {{ submission.score }}%</h3>
+<h3>Результат теста</h3>
+<div class="card mb-3">
+  <div class="card-body">
+    <p class="mb-2"><b>Попытка:</b> {{ submission.attempt_number }}</p>
+    <p class="mb-2"><b>Баллы:</b> {{ submission.score }}</p>
+    <p class="mb-2"><b>Процент:</b> {{ submission.percent }}%</p>
+    <p class="mb-2"><b>Сдан:</b> {% if submission.passed %}Да{% else %}Нет{% endif %}</p>
+    <p class="mb-0"><b>Дата сдачи:</b> {{ submission.taken_at }}</p>
+  </div>
+</div>
 {% if submission.passed %}
   <div class="alert alert-success">Тест пройден.</div>
 {% else %}
   <div class="alert alert-danger">Тест не пройден.</div>
 {% endif %}
+<a class="btn btn-outline-primary" href="{% url 'quizzes:attempt_history' %}">История попыток</a>
 <a class="btn btn-outline-secondary" href="/reports/my/">Мой прогресс</a>
 {% endblock %}
