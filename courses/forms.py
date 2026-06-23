@@ -1,5 +1,6 @@
 from django import forms
 
+from .file_security import ALLOWED_EXTENSIONS, DEFAULT_MAX_FILE_SIZE
 from .models import Course, Lesson
 
 
@@ -44,6 +45,34 @@ class LessonForm(forms.ModelForm):
             'title': 'Название урока',
             'content': 'Содержание',
             'type': 'Тип',
-            'file': 'Файл',
+            'file': 'Защищённый файл',
             'order': 'Порядок',
         }
+        help_texts = {
+            'file': (
+                'Разрешены PDF, DOCX, XLSX, PPTX, TXT, CSV, JPG и PNG. '
+                f'Максимальный размер по умолчанию — '
+                f'{DEFAULT_MAX_FILE_SIZE // (1024 * 1024)} МБ.'
+            ),
+        }
+        widgets = {
+            'file': forms.ClearableFileInput(
+                attrs={'accept': ','.join(ALLOWED_EXTENSIONS)}
+            ),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        lesson_type = cleaned_data.get('type')
+        uploaded_file = cleaned_data.get('file')
+
+        if lesson_type == 'file' and not uploaded_file:
+            self.add_error('file', 'Для урока типа «Файл» необходимо загрузить файл.')
+
+        if lesson_type != 'file' and uploaded_file:
+            self.add_error(
+                'file',
+                'Загрузка файла разрешена только для урока типа «Файл».',
+            )
+
+        return cleaned_data

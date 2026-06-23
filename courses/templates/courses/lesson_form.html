@@ -2,6 +2,12 @@
 {% block title %}Добавить урок{% endblock %}
 {% block content %}
 <h3>Добавить урок в курс «{{ course.title }}»</h3>
+
+<div class="alert alert-info" role="alert">
+  Загружаемые материалы проверяются по размеру, расширению и фактическому содержимому.
+  Файлы выдаются только через авторизованный маршрут и не публикуются напрямую.
+</div>
+
 <form method="post" enctype="multipart/form-data">{% csrf_token %}
   {{ form.as_p }}
   <button class="btn btn-primary">Сохранить</button>
