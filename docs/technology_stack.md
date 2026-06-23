@@ -1,60 +1,42 @@
-# Фактический технологический стек IBSec LMS
+# Технологический стек IBSec LMS
 
 ## Серверная часть
 
-- Python 3;
+- Python 3.12;
 - Django 4.2.13;
 - Django ORM;
 - Django Authentication;
-- Django Admin;
 - Django Migrations;
-- WSGI/ASGI-интерфейсы Django.
+- PostgreSQL через `psycopg2-binary`;
+- SQLite для локальной разработки;
+- `python-dotenv` для локальной конфигурации;
+- Gunicorn как WSGI-сервер.
 
-## Клиентская часть
+## Пользовательский интерфейс
 
 - Django Templates;
 - HTML5;
 - CSS;
-- Bootstrap 5;
-- JavaScript.
+- JavaScript;
+- Bootstrap 5.
 
-## Данные
+## Документы и отчётность
 
-- PostgreSQL 18.4 — основная СУБД;
-- SQLite — fallback для локальной разработки;
-- `psycopg2-binary` — драйвер PostgreSQL;
-- `python-dotenv` — загрузка `.env`;
-- конфигурация через `DATABASE_URL` или `DB_*`.
-
-## Файлы
-
-- `FileField`;
-- `MEDIA_ROOT`;
-- `MEDIA_URL`;
-- локальное файловое хранилище Django.
+- `openpyxl` — создание и оформление XLSX-реестров;
+- `python-docx` — создание DOCX-сертификатов;
+- CSV — обмен данными и экспорт табличных отчётов.
 
 ## Инфраструктура
 
-- Git;
-- GitHub;
-- переменные окружения;
-- Docker и Docker Compose;
-- Gunicorn;
+- Docker;
+- Docker Compose;
 - Nginx;
-- healthchecks и persistent volumes;
-- GitHub Actions — следующий этап.
+- PostgreSQL 18.4 Alpine;
+- GitHub Actions для автоматических проверок;
+- переменные окружения для конфигурации и секретов.
 
-## Миграции
+## Структура приложения
 
-Изменения структуры БД создаются и применяются командами:
+IBSec LMS развёртывается как модульный монолит. Прикладные модули используют общую базу данных и единый механизм аутентификации, но разделены по предметным областям: пользователи, курсы, назначения, тестирование, отчётность, аудит, импорт данных и уведомления.
 
-```bash
-python manage.py makemigrations
-python manage.py migrate
-```
-
-Alembic не используется и не требуется.
-
-## Формулировка для отчета ПДП
-
-> Программная система IBSec LMS реализована на языке Python с использованием веб-фреймворка Django 4.2.13. Доступ к данным выполняется посредством Django ORM, а управление изменениями схемы базы данных — встроенным механизмом Django Migrations. Пользовательский интерфейс сформирован серверными шаблонами Django с применением HTML, CSS, JavaScript и Bootstrap 5. В качестве основной SQL-СУБД поддерживается PostgreSQL, подключаемая через `DATABASE_URL` или переменные `DB_*`; для локальной разработки предусмотрен автоматический fallback на SQLite. Контейнерное развертывание реализовано средствами Docker Compose и включает сервисы PostgreSQL 18.4, Django/Gunicorn и Nginx, а сохранность данных обеспечивается именованными volumes.
+Изменения схемы данных управляются только Django Migrations. Alembic и SQLAlchemy в проекте не используются.

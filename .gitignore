@@ -2,30 +2,40 @@
 __pycache__/
 *.py[cod]
 *.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
 
-# Virtual env
+# Virtual environments
 .venv/
 venv/
 env/
 
-# Django
+# Django runtime data
 db.sqlite3
 media/
 staticfiles/
 
-# Environment and secrets
+# Environment files and secrets
 .env
 .env.*
 !.env.example
 !.env.docker.example
+!demo/.env.example
+demo/.env
 
-# Database backups
+# Database backups and logs
 *.sql
+*.log
 
-# IDE
+# IDE and operating system
 .idea/
 .vscode/
-
-# OS files
 .DS_Store
 Thumbs.db
+
+# Local build artifacts
+*.zip
+*.patch

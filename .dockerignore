@@ -19,6 +19,7 @@ env/
 .env.*
 !.env.example
 !.env.docker.example
+!demo/.env.example
 db.sqlite3
 media/
 staticfiles/

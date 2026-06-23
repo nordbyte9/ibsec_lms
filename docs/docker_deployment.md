@@ -1,160 +1,108 @@
-# Docker-развертывание IBSec LMS на PostgreSQL 18
+# Docker-развёртывание IBSec LMS
 
-## Архитектура
+## Состав окружения
 
-Docker Compose запускает три сервиса:
+`docker-compose.yml` запускает три сервиса:
 
 1. `db` — PostgreSQL 18.4 Alpine;
 2. `web` — Django под Gunicorn;
-3. `nginx` — обратный прокси и сервер статических и загруженных файлов.
+3. `nginx` — обратный прокси и раздача статических файлов.
 
 Данные сохраняются в именованных volumes:
 
-- `postgres18_data` — каталог `/var/lib/postgresql`, соответствующий структуре официального образа PostgreSQL 18;
-- `static_data`;
-- `media_data`.
+- `postgres18_data` — база данных;
+- `static_data` — собранные статические файлы;
+- `media_data` — загруженные материалы.
 
-Сеть `backend` объявлена внутренней. Для локальной диагностики PostgreSQL дополнительно привязан только к `127.0.0.1:55432`; это не конфликтует с установленным на Windows PostgreSQL, который обычно занимает порт 5432. Внешний веб-доступ осуществляется через Nginx на `http://localhost:8000`.
+Сеть базы данных объявлена внутренней. Порт PostgreSQL публикуется только на `127.0.0.1` для локальной диагностики.
 
-## Готовый демонстрационный запуск
-
-Архив содержит `.env.docker` с локальными демонстрационными параметрами. В Windows PowerShell:
-
-```powershell
-Set-ExecutionPolicy -Scope Process Bypass
-.\docker\start-demo.ps1
-```
-
-В Linux/macOS:
-
-```bash
-./docker/start-demo.sh
-```
-
-Ручной запуск:
-
-```powershell
-docker compose --env-file .env.docker config
-docker compose --env-file .env.docker up --build -d
-docker compose --env-file .env.docker ps
-```
-
-Приложение: `http://localhost:8000/`
-
-Healthcheck: `http://localhost:8000/health/`
-
-## Инициализация
-
-При запуске контейнер `web` выполняет:
-
-```bash
-python manage.py check
-python manage.py migrate --noinput
-python manage.py seed_demo_once  # только при LOAD_DEMO_DATA=True
-python manage.py collectstatic --noinput
-```
-
-Команда `seed_demo_once` проверяет наличие основных демонстрационных пользователей, курса и теста. Если они уже существуют, повторный вызов `seed_demo` пропускается, поэтому перезапуск контейнеров не создаёт повторные журнальные записи.
-
-## Демо-данные
-
-При `LOAD_DEMO_DATA=True` создаются:
-
-- подразделения и должности;
-- пользователи четырёх демонстрационных аккаунтов;
-- учебные программы и категории ИБ;
-- опубликованный курс «Основы информационной безопасности»;
-- три урока;
-- тест с вопросами и вариантами ответов;
-- назначения, попытки тестирования и результаты;
-- демонстрационные записи аудита и интеграций.
-
-Аккаунты:
-
-```text
-admin / admin12345
-security_officer / security_officer12345
-employee / employee12345
-employee2 / employee22345
-```
-
-## Проверка
+## Подготовка конфигурации
 
 Windows:
 
 ```powershell
-.\docker\verify-demo.ps1
+Copy-Item .env.docker.example .env.docker
 ```
 
-Ручные команды:
+Linux/macOS:
 
-```powershell
-docker compose --env-file .env.docker exec web python manage.py check
-docker compose --env-file .env.docker exec web python manage.py test
-docker compose --env-file .env.docker exec web python manage.py shell -c "from django.db import connection; connection.ensure_connection(); print(connection.vendor); print(connection.settings_dict['NAME'])"
-docker compose --env-file .env.docker exec db psql -U ibsec_user -d ibsec_lms -c "SELECT version();"
+```bash
+cp .env.docker.example .env.docker
 ```
 
-Ожидаемые значения:
+Перед запуском замените все значения с префиксом `replace-`. Для публичного домена также задайте корректные `ALLOWED_HOSTS` и `CSRF_TRUSTED_ORIGINS`.
+
+Файл `.env.docker` содержит секреты и не должен попадать в Git.
+
+## Запуск
+
+```bash
+docker compose --env-file .env.docker config
+docker compose --env-file .env.docker up --build -d
+```
+
+При старте контейнер `web` выполняет:
 
 ```text
-postgresql
-ibsec_lms
-PostgreSQL 18.4
+python manage.py check
+python manage.py migrate --noinput
+python manage.py migrate --check
+python manage.py collectstatic --noinput
 ```
 
-## Подключение локальным psql
+Создание первого администратора:
 
-```powershell
-psql -h localhost -p 55432 -U ibsec_user -d ibsec_lms
+```bash
+docker compose --env-file .env.docker exec web python manage.py createsuperuser
 ```
 
-Пароль из готового demo-файла: `strong-password`.
+Проверка состояния:
 
-Внутри `psql`:
-
-```sql
-SELECT current_database(), current_user, version();
-\dt
+```bash
+docker compose --env-file .env.docker ps
+curl --fail http://localhost:8000/health/
+docker compose --env-file .env.docker exec web python manage.py check
 ```
 
 ## Логи и управление
 
-```powershell
-# Все логи
+```bash
+# Все сервисы
 docker compose --env-file .env.docker logs -f
 
-# Только Django
+# Только приложение
 docker compose --env-file .env.docker logs -f web
 
 # Остановка с сохранением данных
 docker compose --env-file .env.docker down
-
-# Полный сброс демо-окружения
-docker compose --env-file .env.docker down -v --remove-orphans
 ```
 
-Команда `down -v` удаляет только Docker volumes этого Compose-проекта. Локальная PostgreSQL-база вне Docker не затрагивается.
+Команда `down -v` удаляет базу данных и загруженные файлы этого Compose-проекта. В рабочем окружении её следует использовать только при осознанном полном сбросе.
 
-## Резервное копирование
+## Резервное копирование PostgreSQL
+
+```bash
+docker compose --env-file .env.docker exec -T db \
+  pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" > ibsec_lms_backup.sql
+```
+
+Для PowerShell удобнее явно указать значения пользователя и базы из `.env.docker`:
 
 ```powershell
 docker compose --env-file .env.docker exec -T db `
   pg_dump -U ibsec_user -d ibsec_lms > ibsec_lms_backup.sql
 ```
 
-Восстановление:
+Перед восстановлением проверьте целевую базу и версию PostgreSQL.
 
-```powershell
-Get-Content .\ibsec_lms_backup.sql -Raw | `
-  docker compose --env-file .env.docker exec -T db `
-  psql -U ibsec_user -d ibsec_lms
-```
+## PostgreSQL 18
 
-## Важное отличие PostgreSQL 18
+Официальный образ PostgreSQL 18 использует версионный каталог `PGDATA` внутри `/var/lib/postgresql`. Поэтому volume монтируется в `/var/lib/postgresql`, а контейнер самостоятельно создаёт нужную внутреннюю структуру.
 
-Начиная с PostgreSQL 18 официальный Docker-образ использует версионный `PGDATA` (`/var/lib/postgresql/18/docker`), а volume должен монтироваться в `/var/lib/postgresql`. Поэтому архив использует отдельный volume `postgres18_data` и не пытается запустить PostgreSQL 18 на старом volume от PostgreSQL 16.
+## Демонстрационный контур
 
-## Ограничение текущего этапа
+Демонстрационные пользователи и данные не подключены к обычному Compose-запуску. Для них используется отдельный override и настройки из каталога [`demo/`](../demo/README.md).
 
-Nginx напрямую раздаёт `/media/` для совместимости с текущими ссылками `FileField`. Объектная авторизация файлов должна быть добавлена отдельным этапом усиления файлового хранилища.
+## Текущее ограничение файлового хранилища
+
+Nginx напрямую раздаёт `/media/` для совместимости с текущими ссылками Django `FileField`. До внедрения объектной авторизации загруженные материалы следует размещать только в доверенном внутреннем контуре и не публиковать media endpoint в открытом интернете.
