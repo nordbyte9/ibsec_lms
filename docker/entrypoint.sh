@@ -21,13 +21,6 @@ else
     echo "Database migrations are disabled by RUN_MIGRATIONS=${RUN_MIGRATIONS:-}."
 fi
 
-if is_true "${LOAD_DEMO_DATA:-false}"; then
-    echo "Loading demo data once..."
-    python manage.py seed_demo_once
-else
-    echo "Demo data loading is disabled by LOAD_DEMO_DATA=${LOAD_DEMO_DATA:-}."
-fi
-
 if is_true "${COLLECT_STATIC:-true}"; then
     echo "Collecting static files..."
     python manage.py collectstatic --noinput

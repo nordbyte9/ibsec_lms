@@ -1,7 +1,8 @@
 from datetime import timedelta
+import os
 
 from django.contrib.auth.models import User
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 
 from accounts.models import Department, Position, Profile
@@ -16,6 +17,23 @@ class Command(BaseCommand):
     help = 'Создаёт демо-данные и аккаунты'
 
     def handle(self, *args, **kwargs):
+        password_env = {
+            'admin': 'DEMO_ADMIN_PASSWORD',
+            'security_officer': 'DEMO_SECURITY_OFFICER_PASSWORD',
+            'employee': 'DEMO_EMPLOYEE_PASSWORD',
+            'employee2': 'DEMO_EMPLOYEE2_PASSWORD',
+        }
+        missing = [name for name in password_env.values() if not os.getenv(name)]
+        if missing:
+            raise CommandError(
+                'Не заданы переменные демонстрационных паролей: ' + ', '.join(missing)
+            )
+
+        demo_passwords = {
+            username: os.environ[env_name]
+            for username, env_name in password_env.items()
+        }
+
         departments = [
             Department.objects.get_or_create(name='Отдел информационной безопасности')[0],
             Department.objects.get_or_create(name='ИТ-отдел')[0],
@@ -45,7 +63,7 @@ class Command(BaseCommand):
         admin = create_user(
             'admin',
             'admin@example.com',
-            'admin12345',
+            demo_passwords['admin'],
             'admin',
             department=departments[0],
             position=positions[0],
@@ -55,7 +73,7 @@ class Command(BaseCommand):
         security_officer = create_user(
             'security_officer',
             'security_officer@example.com',
-            'security_officer12345',
+            demo_passwords['security_officer'],
             'security_officer',
             department=departments[0],
             position=positions[0],
@@ -63,7 +81,7 @@ class Command(BaseCommand):
         employee = create_user(
             'employee',
             'employee@example.com',
-            'employee12345',
+            demo_passwords['employee'],
             'employee',
             department=departments[1],
             position=positions[1],
@@ -71,7 +89,7 @@ class Command(BaseCommand):
         employee_two = create_user(
             'employee2',
             'employee2@example.com',
-            'employee22345',
+            demo_passwords['employee2'],
             'employee',
             department=departments[2],
             position=positions[2],
@@ -273,8 +291,6 @@ class Command(BaseCommand):
 
         integration_logs = [
             ('csv', 'success', 3, 3, 4, 'Демо: импорт оргструктуры из CSV'),
-            ('ldap', 'started', 0, 0, 0, 'Демо: подготовка LDAP-синхронизации'),
-            ('active_directory', 'failed', 0, 0, 0, 'Демо: AD-синхронизация временно недоступна'),
         ]
         for source, status, departments_count, positions_count, users_count, message in integration_logs:
             log = IntegrationSyncLog.objects.create(
