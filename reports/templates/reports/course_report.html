@@ -1,16 +1,18 @@
 {% extends 'base.html' %}
 {% block title %}Отчет по курсам{% endblock %}
+
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h3>Отчет по курсам</h3>
   <a class="btn btn-outline-primary" href="{% url 'reports:course_export_csv' %}?department={{ selected_department }}&course={{ selected_course }}&status={{ selected_status }}">CSV</a>
 </div>
+
 <form method="get" class="row g-2 mb-4">
   <div class="col-md-4">
     <select name="department" class="form-select">
       <option value="">Все подразделения</option>
       {% for department in departments %}
-        <option value="{{ department.id }}" {% if selected_department == department.id|stringformat:'s' %}selected{% endif %}>{{ department.name }}</option>
+      <option value="{{ department.id }}" {% if selected_department == department.id|stringformat:'s' %}selected{% endif %}>{{ department.name }}</option>
       {% endfor %}
     </select>
   </div>
@@ -18,7 +20,7 @@
     <select name="course" class="form-select">
       <option value="">Все курсы</option>
       {% for course in courses %}
-        <option value="{{ course.id }}" {% if selected_course == course.id|stringformat:'s' %}selected{% endif %}>{{ course.title }}</option>
+      <option value="{{ course.id }}" {% if selected_course == course.id|stringformat:'s' %}selected{% endif %}>{{ course.title }}</option>
       {% endfor %}
     </select>
   </div>
@@ -35,6 +37,7 @@
     <button class="btn btn-primary w-100">OK</button>
   </div>
 </form>
+
 <div class="table-responsive">
   <table class="table table-striped align-middle">
     <thead>
@@ -43,7 +46,7 @@
         <th>Программа ИБ</th>
         <th>Назначено</th>
         <th>Завершено</th>
-        <th>Средний балл</th>
+        <th>Средний результат</th>
       </tr>
     </thead>
     <tbody>
@@ -53,7 +56,7 @@
         <td>{{ row.program }}</td>
         <td>{{ row.assigned }}</td>
         <td>{{ row.completed }}</td>
-        <td>{{ row.avg_score }}</td>
+        <td>{{ row.avg_percent|floatformat:2 }}%</td>
       </tr>
       {% empty %}
       <tr><td colspan="5">Нет данных.</td></tr>
