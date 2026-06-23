@@ -22,6 +22,6 @@ def integration_index(request):
         'integrations/index.html',
         {
             'logs': logs,
-            'breadcrumbs': breadcrumbs(('Главная', '/'), ('Интеграции', None)),
+            'breadcrumbs': breadcrumbs(('Главная', '/'), ('Импорт оргструктуры', None)),
         },
     )

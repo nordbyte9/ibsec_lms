@@ -4,13 +4,11 @@ from django.db import models
 class IntegrationSyncLog(models.Model):
     class Source(models.TextChoices):
         CSV = 'csv', 'CSV'
-        LDAP = 'ldap', 'LDAP'
-        ACTIVE_DIRECTORY = 'active_directory', 'Active Directory'
 
     class Status(models.TextChoices):
-        STARTED = 'started', 'Started'
-        SUCCESS = 'success', 'Success'
-        FAILED = 'failed', 'Failed'
+        STARTED = 'started', 'Запущено'
+        SUCCESS = 'success', 'Успешно'
+        FAILED = 'failed', 'Ошибка'
 
     source = models.CharField(max_length=32, choices=Source.choices)
     status = models.CharField(max_length=32, choices=Status.choices)

@@ -30,7 +30,7 @@
               <a class="nav-link {% if request.path|slice:':9' == '/reports/' and request.path != '/reports/my/' %}active{% endif %}" href="{% url 'reports:dashboard' %}">Панель ИБ</a>
               <a class="nav-link {% if request.path|slice:':9' == '/reports/' and request.path != '/reports/my/' %}active{% endif %}" href="{% url 'reports:employee_report' %}">Отчеты</a>
               <a class="nav-link {% if request.path|slice:':8' == '/audit/' %}active{% endif %}" href="{% url 'audit:list' %}">Журнал аудита</a>
-              <a class="nav-link {% if request.path|slice:':15' == '/integrations/' %}active{% endif %}" href="{% url 'integrations:index' %}">Интеграции</a>
+              <a class="nav-link {% if request.path|slice:':15' == '/integrations/' %}active{% endif %}" href="{% url 'integrations:index' %}">Импорт оргструктуры</a>
               <a class="nav-link {% if request.path == '/courses/create/' %}active{% endif %}" href="{% url 'courses:create' %}">Создать курс</a>
             {% endif %}
           {% endif %}
