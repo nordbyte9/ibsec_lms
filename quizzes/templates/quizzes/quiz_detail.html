@@ -1,25 +1,55 @@
 {% extends 'base.html' %}
+
 {% block title %}Тест по курсу {{ course.title }}{% endblock %}
+
 {% block content %}
-{% if quiz %}
-<h3>{{ quiz.title }}</h3>
-<div class="card mb-3">
-  <div class="card-body">
-    <p class="mb-2">{{ quiz.description }}</p>
-    <p class="mb-2"><b>Проходной балл:</b> {{ quiz.pass_score }}%</p>
-    <p class="mb-2"><b>Лимит времени:</b> {{ quiz.time_limit_minutes }} мин.</p>
-    <p class="mb-2"><b>Доступно попыток:</b> {{ quiz.max_attempts }}</p>
-    <p class="mb-0"><b>Использовано попыток:</b> {{ attempts_used }}</p>
-  </div>
+<div class="container py-4">
+    {% if quiz %}
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h1 class="h3">{{ quiz.title }}</h1>
+                <p>{{ quiz.description }}</p>
+
+                <dl class="row mb-4">
+                    <dt class="col-sm-4">Проходной балл</dt>
+                    <dd class="col-sm-8">{{ quiz.pass_score }}%</dd>
+
+                    <dt class="col-sm-4">Лимит времени</dt>
+                    <dd class="col-sm-8">{{ quiz.time_limit_minutes }} мин.</dd>
+
+                    <dt class="col-sm-4">Максимум попыток</dt>
+                    <dd class="col-sm-8">{{ quiz.max_attempts }}</dd>
+
+                    <dt class="col-sm-4">Использовано</dt>
+                    <dd class="col-sm-8">{{ attempts_used }}</dd>
+
+                    <dt class="col-sm-4">Осталось</dt>
+                    <dd class="col-sm-8">{{ attempts_left }}</dd>
+                </dl>
+
+                {% if active_attempt %}
+                    <a href="{% url 'quizzes:take' quiz.id %}" class="btn btn-warning">
+                        Продолжить попытку №{{ active_attempt.attempt_number }}
+                    </a>
+                {% elif attempts_used < quiz.max_attempts %}
+                    <a href="{% url 'quizzes:take' quiz.id %}" class="btn btn-primary">
+                        Начать тест
+                    </a>
+                {% else %}
+                    <div class="alert alert-danger mb-0">
+                        Лимит попыток исчерпан.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            Для курса «{{ course.title }}» пока нет активного теста.
+        </div>
+    {% endif %}
+
+    <a href="{% url 'quizzes:attempt_history' %}" class="btn btn-link mt-3">
+        История попыток
+    </a>
 </div>
-{% if attempts_used < quiz.max_attempts %}
-  <a class="btn btn-success" href="{% url 'quizzes:take' quiz.id %}">Начать тест</a>
-{% else %}
-  <div class="alert alert-warning">Лимит попыток исчерпан.</div>
-{% endif %}
-{% else %}
-<h3>Тест по курсу {{ course.title }}</h3>
-  <div class="alert alert-secondary">Для этого курса пока нет активного теста.</div>
-{% endif %}
-<a class="btn btn-outline-secondary ms-2" href="{% url 'quizzes:attempt_history' %}">История попыток</a>
 {% endblock %}

@@ -1,26 +1,121 @@
 {% extends 'base.html' %}
+
 {% block title %}Прохождение теста{% endblock %}
+
 {% block content %}
-<h3>{{ quiz.title }}</h3>
-<div class="mb-3 text-muted">
-  Проходной балл: {{ quiz.pass_score }}% ·
-  Лимит времени: {{ quiz.time_limit_minutes }} мин. ·
-  Доступно попыток: {{ quiz.max_attempts }} ·
-  Использовано попыток: {{ attempts_used }} ·
-  Осталось: {{ attempts_left }}
-</div>
-<form method="post">{% csrf_token %}
-  {% for q in questions %}
-    <div class="mb-3 p-3 border rounded">
-      <p class="fw-bold">{{ forloop.counter }}. {{ q.text }}</p>
-      {% for opt in q.options.all %}
-        <div class="form-check">
-          <input class="form-check-input" type="radio" name="question_{{ q.id }}" id="opt{{ opt.id }}" value="{{ opt.id }}">
-          <label class="form-check-label" for="opt{{ opt.id }}">{{ opt.text }}</label>
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+        <div>
+            <h1 class="h3 mb-2">{{ quiz.title }}</h1>
+            <p class="text-muted mb-0">
+                Попытка №{{ attempt.attempt_number }} ·
+                проходной балл {{ quiz.pass_score }}% ·
+                использовано {{ attempts_used }} из {{ quiz.max_attempts }}
+            </p>
         </div>
-      {% endfor %}
+
+        <div class="card shadow-sm border-warning">
+            <div class="card-body py-2 px-3">
+                <div class="small text-muted">Осталось времени</div>
+                <div
+                    id="quiz-countdown"
+                    class="fs-4 fw-semibold"
+                    data-remaining-seconds="{{ remaining_seconds }}"
+                    aria-live="polite"
+                >
+                    --:--
+                </div>
+            </div>
+        </div>
     </div>
-  {% endfor %}
-  <button class="btn btn-primary">Отправить</button>
-</form>
+
+    <div id="quiz-expired-message" class="alert alert-danger d-none" role="alert">
+        Время прохождения теста истекло. Отправка ответов заблокирована сервером.
+    </div>
+
+    <form method="post" id="quiz-form" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="attempt_token" value="{{ attempt.token }}">
+
+        {% for q in questions %}
+            <fieldset class="card shadow-sm mb-3">
+                <div class="card-body">
+                    <legend class="h5 mb-3">
+                        {{ forloop.counter }}. {{ q.text }}
+                    </legend>
+
+                    {% for opt in q.options.all %}
+                        <div class="form-check mb-2">
+                            <input
+                                class="form-check-input"
+                                type="radio"
+                                name="question_{{ q.id }}"
+                                id="option_{{ opt.id }}"
+                                value="{{ opt.id }}"
+                            >
+                            <label class="form-check-label" for="option_{{ opt.id }}">
+                                {{ opt.text }}
+                            </label>
+                        </div>
+                    {% empty %}
+                        <div class="alert alert-warning mb-0">
+                            Для вопроса не настроены варианты ответа.
+                        </div>
+                    {% endfor %}
+                </div>
+            </fieldset>
+        {% empty %}
+            <div class="alert alert-warning">
+                В тесте пока нет вопросов.
+            </div>
+        {% endfor %}
+
+        <button type="submit" class="btn btn-primary" id="quiz-submit-button">
+            Отправить ответы
+        </button>
+    </form>
+</div>
+
+<script>
+(function () {
+    const timer = document.getElementById('quiz-countdown');
+    const form = document.getElementById('quiz-form');
+    const submitButton = document.getElementById('quiz-submit-button');
+    const expiredMessage = document.getElementById('quiz-expired-message');
+
+    if (!timer || !form || !submitButton) {
+        return;
+    }
+
+    let remaining = Number.parseInt(timer.dataset.remainingSeconds || '0', 10);
+
+    function renderTimer() {
+        const safeRemaining = Math.max(remaining, 0);
+        const minutes = Math.floor(safeRemaining / 60);
+        const seconds = safeRemaining % 60;
+
+        timer.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+        if (safeRemaining <= 0) {
+            submitButton.disabled = true;
+            expiredMessage.classList.remove('d-none');
+            return false;
+        }
+
+        return true;
+    }
+
+    if (!renderTimer()) {
+        return;
+    }
+
+    const intervalId = window.setInterval(function () {
+        remaining -= 1;
+
+        if (!renderTimer()) {
+            window.clearInterval(intervalId);
+        }
+    }, 1000);
+})();
+</script>
 {% endblock %}

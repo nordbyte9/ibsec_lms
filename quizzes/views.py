@@ -1,7 +1,15 @@
+from datetime import timedelta
+import uuid
+
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db import transaction
-from django.http import HttpResponseBadRequest, HttpResponseForbidden
+from django.db.models import Max
+from django.http import (
+    HttpResponse,
+    HttpResponseBadRequest,
+    HttpResponseForbidden,
+)
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
@@ -10,7 +18,7 @@ from assignments.models import CourseAssignment
 from audit.services import log_action
 from courses.models import Course
 
-from .models import Answer, Quiz, Submission
+from .models import Answer, Quiz, QuizAttempt, Submission
 
 
 def _can_view_all_results(user):
@@ -38,10 +46,10 @@ def _can_take_quiz(user, quiz):
     if _can_preview_quiz(user):
         return True
 
-    return has_permission(user, Permission.TAKE_ASSIGNED_QUIZ) and _has_course_assignment(
+    return has_permission(
         user,
-        quiz.course,
-    )
+        Permission.TAKE_ASSIGNED_QUIZ,
+    ) and _has_course_assignment(user, quiz.course)
 
 
 def _submission_queryset_for_user(user):
@@ -76,16 +84,16 @@ def _update_assignment_on_pass(user, quiz):
 
 
 def _validate_submitted_answers(request, questions):
-    """Проверяет, что каждый option_id принадлежит своему вопросу.
+    """Проверяет, что каждый option_id принадлежит своему вопросу."""
 
-    Возвращает словарь ``question_id -> Option | None``. Любое неизвестное
-    поле вопроса, повторяющееся значение или вариант из другого вопроса
-    считается некорректным запросом.
-    """
-
-    question_keys = {f'question_{question.pk}' for question in questions}
+    question_keys = {
+        f'question_{question.pk}'
+        for question in questions
+    }
     submitted_question_keys = {
-        key for key in request.POST.keys() if key.startswith('question_')
+        key
+        for key in request.POST.keys()
+        if key.startswith('question_')
     }
 
     if not submitted_question_keys.issubset(question_keys):
@@ -111,7 +119,6 @@ def _validate_submitted_answers(request, questions):
         except (TypeError, ValueError):
             return None
 
-        # Вариант ищется только среди вариантов текущего вопроса.
         selected = next(
             (
                 option
@@ -143,19 +150,139 @@ def _log_invalid_quiz_submission(request, quiz):
     )
 
 
+def _legacy_submissions(user, quiz):
+    """Возвращает старые результаты, не связанные с QuizAttempt."""
+
+    return Submission.objects.filter(
+        user=user,
+        quiz=quiz,
+        attempt_record__isnull=True,
+    )
+
+
+def _attempts_used(user, quiz):
+    return (
+        QuizAttempt.objects.filter(user=user, quiz=quiz).count()
+        + _legacy_submissions(user, quiz).count()
+    )
+
+
+def _next_attempt_number(user, quiz):
+    tracked_max = (
+        QuizAttempt.objects.filter(user=user, quiz=quiz)
+        .aggregate(value=Max('attempt_number'))['value']
+        or 0
+    )
+    legacy_max = (
+        _legacy_submissions(user, quiz)
+        .aggregate(value=Max('attempt_number'))['value']
+        or 0
+    )
+    return max(tracked_max, legacy_max) + 1
+
+
+def _expire_stale_attempts(request, quiz):
+    now = timezone.now()
+    stale_attempts = list(
+        QuizAttempt.objects.select_for_update().filter(
+            user=request.user,
+            quiz=quiz,
+            status=QuizAttempt.Status.IN_PROGRESS,
+            expires_at__lte=now,
+        )
+    )
+
+    for attempt in stale_attempts:
+        attempt.status = QuizAttempt.Status.EXPIRED
+        attempt.submitted_at = now
+        attempt.save(update_fields=['status', 'submitted_at'])
+
+        log_action(
+            request.user,
+            'quiz_attempt_expired',
+            'QuizAttempt',
+            attempt.pk,
+            (
+                f'Истекло время попытки {attempt.attempt_number} '
+                f'теста "{quiz.title}"'
+            ),
+            request=request,
+        )
+
+
+def _get_or_start_attempt(request, quiz):
+    """Возобновляет активную попытку либо безопасно создаёт новую."""
+
+    User.objects.select_for_update().get(pk=request.user.pk)
+    _expire_stale_attempts(request, quiz)
+
+    active_attempt = (
+        QuizAttempt.objects.select_for_update()
+        .filter(
+            user=request.user,
+            quiz=quiz,
+            status=QuizAttempt.Status.IN_PROGRESS,
+            expires_at__gt=timezone.now(),
+        )
+        .order_by('started_at', 'id')
+        .first()
+    )
+
+    if active_attempt:
+        return active_attempt, False
+
+    if _attempts_used(request.user, quiz) >= quiz.max_attempts:
+        return None, False
+
+    started_at = timezone.now()
+    attempt = QuizAttempt.objects.create(
+        user=request.user,
+        quiz=quiz,
+        status=QuizAttempt.Status.IN_PROGRESS,
+        attempt_number=_next_attempt_number(request.user, quiz),
+        started_at=started_at,
+        expires_at=started_at + timedelta(minutes=quiz.time_limit_minutes),
+    )
+
+    log_action(
+        request.user,
+        'quiz_attempt_started',
+        'QuizAttempt',
+        attempt.pk,
+        (
+            f'Начата попытка {attempt.attempt_number} '
+            f'теста "{quiz.title}"'
+        ),
+        request=request,
+    )
+
+    return attempt, True
+
+
 @login_required
 def course_quiz_entry(request, course_id):
-    course = get_object_or_404(Course, pk=course_id, is_published=True)
+    course = get_object_or_404(
+        Course,
+        pk=course_id,
+        is_published=True,
+    )
     quiz = course.quizzes.filter(is_active=True).first()
 
     if quiz and not _can_take_quiz(request.user, quiz):
-        return HttpResponseForbidden('Тест доступен только по назначенному курсу')
+        return HttpResponseForbidden(
+            'Тест доступен только по назначенному курсу'
+        )
 
-    attempts_used = (
-        quiz.submissions.filter(user=request.user).count()
-        if quiz
-        else 0
-    )
+    attempts_used = _attempts_used(request.user, quiz) if quiz else 0
+    active_attempt = None
+
+    if quiz:
+        active_attempt = QuizAttempt.objects.filter(
+            user=request.user,
+            quiz=quiz,
+            status=QuizAttempt.Status.IN_PROGRESS,
+            expires_at__gt=timezone.now(),
+        ).first()
 
     return render(
         request,
@@ -164,6 +291,12 @@ def course_quiz_entry(request, course_id):
             'course': course,
             'quiz': quiz,
             'attempts_used': attempts_used,
+            'attempts_left': (
+                max(quiz.max_attempts - attempts_used, 0)
+                if quiz
+                else 0
+            ),
+            'active_attempt': active_attempt,
         },
     )
 
@@ -180,74 +313,131 @@ def take_quiz(request, quiz_id):
         return HttpResponseForbidden('Курс не опубликован')
 
     if not _can_take_quiz(request.user, quiz):
-        return HttpResponseForbidden('Тест доступен только по назначенному курсу')
+        return HttpResponseForbidden(
+            'Тест доступен только по назначенному курсу'
+        )
 
     questions = list(
         quiz.questions.prefetch_related('options').all()
     )
 
-    attempts_used = Submission.objects.filter(
-        user=request.user,
-        quiz=quiz,
-    ).count()
-
-    if attempts_used >= quiz.max_attempts:
-        return HttpResponseForbidden('Лимит попыток исчерпан')
-
     if request.method == 'POST':
-        selected_options = _validate_submitted_answers(request, questions)
+        attempt_token = request.POST.get('attempt_token')
+
+        if not attempt_token:
+            _log_invalid_quiz_submission(request, quiz)
+            return HttpResponseBadRequest('Не указан идентификатор попытки')
+
+        try:
+            attempt_uuid = uuid.UUID(str(attempt_token))
+        except (TypeError, ValueError, AttributeError):
+            _log_invalid_quiz_submission(request, quiz)
+            return HttpResponseBadRequest(
+                'Некорректный идентификатор попытки'
+            )
+
+        selected_options = _validate_submitted_answers(
+            request,
+            questions,
+        )
 
         if selected_options is None:
             _log_invalid_quiz_submission(request, quiz)
             return HttpResponseBadRequest('Некорректные данные ответа')
 
         with transaction.atomic():
-            # Блокировка пользователя сериализует отправки одного пользователя
-            # и не позволяет параллельным запросам превысить лимит попыток.
             User.objects.select_for_update().get(pk=request.user.pk)
 
-            attempts_used = Submission.objects.filter(
-                user=request.user,
-                quiz=quiz,
-            ).count()
-
-            if attempts_used >= quiz.max_attempts:
-                return HttpResponseForbidden('Лимит попыток исчерпан')
-
-            submission = Submission.objects.create(
-                user=request.user,
-                quiz=quiz,
-                score=0,
-                percent=0.0,
-                passed=False,
-                attempt_number=attempts_used + 1,
+            attempt = (
+                QuizAttempt.objects.select_for_update()
+                .filter(
+                    token=attempt_uuid,
+                    user=request.user,
+                    quiz=quiz,
+                )
+                .first()
             )
+
+            if attempt is None:
+                _log_invalid_quiz_submission(request, quiz)
+                return HttpResponseBadRequest(
+                    'Некорректный идентификатор попытки'
+                )
+
+            if attempt.status != QuizAttempt.Status.IN_PROGRESS:
+                return HttpResponse(
+                    'Эта попытка уже завершена',
+                    status=409,
+                )
+
+            now = timezone.now()
+
+            if now >= attempt.expires_at:
+                attempt.status = QuizAttempt.Status.EXPIRED
+                attempt.submitted_at = now
+                attempt.save(update_fields=['status', 'submitted_at'])
+
+                log_action(
+                    request.user,
+                    'quiz_attempt_expired',
+                    'QuizAttempt',
+                    attempt.pk,
+                    (
+                        f'Истекло время попытки '
+                        f'{attempt.attempt_number} теста "{quiz.title}"'
+                    ),
+                    request=request,
+                )
+
+                return HttpResponse(
+                    'Время прохождения теста истекло',
+                    status=409,
+                )
 
             correct = 0
             answers = []
 
             for question in questions:
                 selected = selected_options[question.pk]
+
+                if selected is not None and selected.is_correct:
+                    correct += 1
+
                 answers.append(
                     Answer(
-                        submission=submission,
                         question=question,
                         selected_option=selected,
                     )
                 )
 
-                if selected is not None and selected.is_correct:
-                    correct += 1
-
-            Answer.objects.bulk_create(answers)
-
             total = len(questions) or 1
             percent = round(correct / total * 100, 2)
 
-            submission.score = correct
-            submission.percent = percent
-            submission.passed = percent >= quiz.pass_score
-            submission.save(update_fields=['score', 'percent', 'passed'])
+            submission = Submission.objects.create(
+                user=request.user,
+                quiz=quiz,
+                score=correct,
+                percent=percent,
+                passed=percent >= quiz.pass_score,
+                attempt_number=attempt.attempt_number,
+                taken_at=now,
+            )
+
+            for answer in answers:
+                answer.submission = submission
+
+            Answer.objects.bulk_create(answers)
+
+            attempt.status = QuizAttempt.Status.SUBMITTED
+            attempt.submitted_at = now
+            attempt.submission = submission
+            attempt.save(
+                update_fields=[
+                    'status',
+                    'submitted_at',
+                    'submission',
+                ]
+            )
 
             log_action(
                 request.user,
@@ -255,15 +445,19 @@ def take_quiz(request, quiz_id):
                 'Submission',
                 submission.pk,
                 (
-                    f'Сдан тест "{quiz.title}" по курсу "{quiz.course.title}" '
-                    f'со счетом {submission.score}/{total} '
+                    f'Сдан тест "{quiz.title}" по курсу '
+                    f'"{quiz.course.title}" со счетом '
+                    f'{submission.score}/{total} '
                     f'({submission.percent}%)'
                 ),
                 request=request,
             )
 
             if submission.passed:
-                assignment = _update_assignment_on_pass(request.user, quiz)
+                assignment = _update_assignment_on_pass(
+                    request.user,
+                    quiz,
+                )
 
                 if assignment:
                     log_action(
@@ -279,7 +473,22 @@ def take_quiz(request, quiz_id):
                         request=request,
                     )
 
-        return redirect('quizzes:result', submission_id=submission.id)
+        return redirect(
+            'quizzes:result',
+            submission_id=submission.id,
+        )
+
+    with transaction.atomic():
+        attempt, _created = _get_or_start_attempt(request, quiz)
+
+    if attempt is None:
+        return HttpResponseForbidden('Лимит попыток исчерпан')
+
+    attempts_used = _attempts_used(request.user, quiz)
+    remaining_seconds = max(
+        0,
+        int((attempt.expires_at - timezone.now()).total_seconds()),
+    )
 
     return render(
         request,
@@ -287,8 +496,13 @@ def take_quiz(request, quiz_id):
         {
             'quiz': quiz,
             'questions': questions,
+            'attempt': attempt,
             'attempts_used': attempts_used,
-            'attempts_left': max(quiz.max_attempts - attempts_used, 0),
+            'attempts_left': max(
+                quiz.max_attempts - attempts_used,
+                0,
+            ),
+            'remaining_seconds': remaining_seconds,
         },
     )
 
@@ -304,7 +518,10 @@ def quiz_result(request, submission_id):
         pk=submission_id,
     )
 
-    if submission.user != request.user and not _can_view_all_results(request.user):
+    if (
+        submission.user != request.user
+        and not _can_view_all_results(request.user)
+    ):
         return HttpResponseForbidden('Недостаточно прав')
 
     return render(
@@ -317,6 +534,7 @@ def quiz_result(request, submission_id):
 @login_required
 def attempt_history(request):
     submissions = _submission_queryset_for_user(request.user)
+
     return render(
         request,
         'quizzes/attempt_history.html',
