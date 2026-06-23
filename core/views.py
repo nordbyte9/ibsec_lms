@@ -1,6 +1,8 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 
+from accounts.permissions import Permission, has_permission
+
 from assignments.models import CourseAssignment
 from courses.models import Course
 from quizzes.models import Submission
@@ -10,8 +12,7 @@ from .navigation import breadcrumbs
 def home(request):
     user = request.user
     is_authenticated = user.is_authenticated
-    profile = getattr(user, 'profile', None) if is_authenticated else None
-    can_view_reports = bool(profile and profile.role in ('security_officer', 'admin'))
+    can_view_reports = has_permission(user, Permission.VIEW_REPORTS)
 
     context = {
         'available_courses_count': Course.objects.filter(is_published=True).count(),

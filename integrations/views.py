@@ -2,13 +2,15 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 from django.shortcuts import render
 
+from accounts.permissions import Permission, has_permission
+
 from core.navigation import breadcrumbs
 
 from .models import IntegrationSyncLog
 
 
 def _can_view_integrations(user):
-    return user.is_authenticated and user.profile.role in ('security_officer', 'admin')
+    return has_permission(user, Permission.VIEW_INTEGRATIONS)
 
 
 @login_required

@@ -6,6 +6,7 @@ from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import render
 
 from accounts.models import Department, Profile
+from accounts.permissions import Permission, has_permission
 from assignments.models import CourseAssignment
 from audit.services import log_action
 from courses.models import Course
@@ -13,12 +14,11 @@ from core.navigation import breadcrumbs
 from quizzes.models import Submission
 
 
-def _is_security_officer_or_admin(user):
-    return user.is_authenticated and user.profile.role in ('security_officer', 'admin')
-
-
-def _require_report_access(request):
-    if not _is_security_officer_or_admin(request.user):
+def _require_report_access(
+    request,
+    permission=Permission.VIEW_REPORTS,
+):
+    if not has_permission(request.user, permission):
         return HttpResponseForbidden('Недостаточно прав')
     return None
 
@@ -304,7 +304,7 @@ def course_report(request):
 
 @login_required
 def export_employee_csv(request):
-    forbidden = _require_report_access(request)
+    forbidden = _require_report_access(request, Permission.EXPORT_REPORTS)
     if forbidden:
         return forbidden
 
@@ -353,7 +353,7 @@ def export_employee_csv(request):
 
 @login_required
 def export_department_csv(request):
-    forbidden = _require_report_access(request)
+    forbidden = _require_report_access(request, Permission.EXPORT_REPORTS)
     if forbidden:
         return forbidden
 
@@ -393,7 +393,7 @@ def export_department_csv(request):
 
 @login_required
 def export_course_csv(request):
-    forbidden = _require_report_access(request)
+    forbidden = _require_report_access(request, Permission.EXPORT_REPORTS)
     if forbidden:
         return forbidden
 

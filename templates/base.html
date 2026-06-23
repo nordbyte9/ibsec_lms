@@ -25,10 +25,10 @@
             <a class="nav-link {% if request.path|slice:':12' == '/reports/my/' %}active{% endif %}" href="/reports/my/">Мой прогресс</a>
             <a class="nav-link {% if request.path|slice:':16' == '/assignments/my/' %}active{% endif %}" href="{% url 'assignments:my' %}">Мои назначения</a>
             <a class="nav-link {% if request.path == '/help/' %}active{% endif %}" href="{% url 'help' %}">Справка</a>
-            {% if request.user.profile.role == 'security_officer' or request.user.profile.role == 'admin' %}
+            {% if rbac.security_staff %}
               <a class="nav-link {% if request.path|slice:':13' == '/assignments/' and request.path != '/assignments/my/' %}active{% endif %}" href="{% url 'assignments:list' %}">Назначения</a>
               <a class="nav-link {% if request.path|slice:':9' == '/reports/' and request.path != '/reports/my/' %}active{% endif %}" href="{% url 'reports:dashboard' %}">Панель ИБ</a>
-              <a class="nav-link {% if request.path|slice:':9' == '/reports/' and request.path != '/reports/my/' %}active{% endif %}" href="{% url 'reports:employee_report' %}">Отчеты</a>
+              <a class="nav-link {% if request.path|slice:':9' == '/reports/' and request.path != '/reports/my/' %}active{% endif %}" href="{% url 'reports:employee_report' %}">Отчёты</a>
               <a class="nav-link {% if request.path|slice:':8' == '/audit/' %}active{% endif %}" href="{% url 'audit:list' %}">Журнал аудита</a>
               <a class="nav-link {% if request.path|slice:':15' == '/integrations/' %}active{% endif %}" href="{% url 'integrations:index' %}">Импорт оргструктуры</a>
               <a class="nav-link {% if request.path == '/courses/create/' %}active{% endif %}" href="{% url 'courses:create' %}">Создать курс</a>

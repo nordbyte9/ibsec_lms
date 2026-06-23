@@ -2,6 +2,8 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 from django.shortcuts import redirect, render
 
+from accounts.permissions import Permission, has_permission
+
 from audit.services import log_action
 from core.navigation import breadcrumbs
 
@@ -10,7 +12,7 @@ from .models import CourseAssignment
 
 
 def _can_manage_assignments(user):
-    return user.is_authenticated and user.profile.role in ('security_officer', 'admin')
+    return has_permission(user, Permission.MANAGE_ASSIGNMENTS)
 
 
 @login_required
