@@ -1,26 +1,116 @@
 {% extends 'base.html' %}
-{% block title %}Прохождение теста{% endblock %}
+{% load static %}
+
+{% block title %}{{ quiz.title }} — прохождение{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/quiz-interface.css' %}">
+{% endblock %}
+
 {% block content %}
-<h3>{{ quiz.title }}</h3>
-<div class="mb-3 text-muted">
-  Проходной балл: {{ quiz.pass_score }}% ·
-  Лимит времени: {{ quiz.time_limit_minutes }} мин. ·
-  Доступно попыток: {{ quiz.max_attempts }} ·
-  Использовано попыток: {{ attempts_used }} ·
-  Осталось: {{ attempts_left }}
-</div>
-<form method="post">{% csrf_token %}
-  {% for q in questions %}
-    <div class="mb-3 p-3 border rounded">
-      <p class="fw-bold">{{ forloop.counter }}. {{ q.text }}</p>
-      {% for opt in q.options.all %}
-        <div class="form-check">
-          <input class="form-check-input" type="radio" name="question_{{ q.id }}" id="opt{{ opt.id }}" value="{{ opt.id }}">
-          <label class="form-check-label" for="opt{{ opt.id }}">{{ opt.text }}</label>
+<section class="quiz-taking" data-quiz-page data-remaining-seconds="{{ remaining_seconds }}">
+  <div class="quiz-taking-header ibsec-card">
+    <div>
+      <nav class="quiz-breadcrumbs" aria-label="Навигационная цепочка">
+        <a href="{% url 'courses:detail' quiz.course.pk %}">{{ quiz.course.title }}</a>
+        <span aria-hidden="true">›</span>
+        <span>{{ quiz.title }}</span>
+      </nav>
+      <div class="quiz-taking-title-row">
+        <div>
+          <span class="quiz-eyebrow">Попытка {{ attempt.attempt_number }}</span>
+          <h1>{{ quiz.title }}</h1>
         </div>
-      {% endfor %}
+        <div class="quiz-timer" role="timer" aria-live="polite">
+          <span>Осталось времени</span>
+          <strong data-quiz-timer>00:00</strong>
+        </div>
+      </div>
     </div>
-  {% endfor %}
-  <button class="btn btn-primary">Отправить</button>
-</form>
+    <div class="quiz-progress-block">
+      <div class="quiz-progress-label">
+        <span>Заполнено ответов</span>
+        <strong><span data-answered-count>0</span> из {{ questions|length }}</strong>
+      </div>
+      <div class="quiz-progress-track" aria-hidden="true">
+        <span data-quiz-progress></span>
+      </div>
+    </div>
+  </div>
+
+  <form method="post" class="quiz-form" data-quiz-form novalidate>
+    {% csrf_token %}
+    <input type="hidden" name="attempt_token" value="{{ attempt.token }}">
+
+    <div class="quiz-layout">
+      <div class="quiz-questions">
+        {% for question in questions %}
+          <fieldset class="quiz-question-card ibsec-card" id="question-{{ forloop.counter }}" data-question-card>
+            <legend>
+              <span>Вопрос {{ forloop.counter }} из {{ questions|length }}</span>
+              <strong>{{ question.text }}</strong>
+            </legend>
+
+            <div class="quiz-options">
+              {% for option in question.options.all %}
+                <label class="quiz-option">
+                  <input type="radio" name="question_{{ question.pk }}" value="{{ option.pk }}" data-answer-input>
+                  <span class="quiz-option-mark" aria-hidden="true"></span>
+                  <span class="quiz-option-letter">{{ forloop.counter }}</span>
+                  <span class="quiz-option-text">{{ option.text }}</span>
+                </label>
+              {% empty %}
+                <p class="quiz-no-options">Варианты ответа пока не добавлены.</p>
+              {% endfor %}
+            </div>
+          </fieldset>
+        {% empty %}
+          <article class="quiz-empty ibsec-card">
+            <h2>Вопросы пока не добавлены</h2>
+            <p>Обратитесь к ответственному за обучение.</p>
+          </article>
+        {% endfor %}
+      </div>
+
+      <aside class="quiz-navigation ibsec-card" aria-label="Навигация по вопросам">
+        <div class="quiz-navigation-head">
+          <h2>Вопросы</h2>
+          <span>{{ questions|length }}</span>
+        </div>
+        <div class="quiz-navigation-grid">
+          {% for question in questions %}
+            <a href="#question-{{ forloop.counter }}" data-question-link data-question-number="{{ forloop.counter }}" aria-label="Перейти к вопросу {{ forloop.counter }}">{{ forloop.counter }}</a>
+          {% endfor %}
+        </div>
+        <div class="quiz-navigation-legend">
+          <span><i class="is-current"></i>Текущий</span>
+          <span><i class="is-answered"></i>Отвечен</span>
+          <span><i></i>Без ответа</span>
+        </div>
+        <div class="quiz-navigation-note">
+          <strong>Ответы сохраняются в форме</strong>
+          <p>Отправка на сервер произойдёт после нажатия кнопки завершения.</p>
+        </div>
+        <button class="btn btn-primary w-100" type="submit" data-submit-quiz>Завершить проверку</button>
+        <a class="quiz-return-link" href="{% url 'quizzes:course_quiz_entry' quiz.course.pk %}">Вернуться к описанию</a>
+      </aside>
+    </div>
+  </form>
+
+  <dialog class="quiz-confirm-dialog" data-quiz-dialog>
+    <form method="dialog">
+      <div class="quiz-confirm-icon">✓</div>
+      <h2>Завершить проверку?</h2>
+      <p>Отвечено на <strong data-dialog-answered>0</strong> из {{ questions|length }} вопросов. После отправки изменить ответы будет нельзя.</p>
+      <div class="quiz-confirm-actions">
+        <button class="btn btn-outline-secondary" value="cancel">Продолжить отвечать</button>
+        <button class="btn btn-primary" value="confirm">Отправить ответы</button>
+      </div>
+    </form>
+  </dialog>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+  <script src="{% static 'js/quiz-interface.js' %}"></script>
 {% endblock %}

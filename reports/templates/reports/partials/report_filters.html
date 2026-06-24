@@ -1,0 +1,6 @@
+<form class="report-filters" method="get">
+  <label><span>Подразделение</span><select name="department"><option value="">Все подразделения</option>{% for department in departments %}<option value="{{ department.id }}" {% if selected_department == department.id|stringformat:'s' %}selected{% endif %}>{{ department.name }}</option>{% endfor %}</select></label>
+  <label><span>Курс</span><select name="course"><option value="">Все курсы</option>{% for course in courses %}<option value="{{ course.id }}" {% if selected_course == course.id|stringformat:'s' %}selected{% endif %}>{{ course.title }}</option>{% endfor %}</select></label>
+  <label><span>Состояние</span><select name="status"><option value="">Все состояния</option><option value="assigned" {% if selected_status == 'assigned' %}selected{% endif %}>Назначено</option><option value="in_progress" {% if selected_status == 'in_progress' %}selected{% endif %}>В процессе</option><option value="completed" {% if selected_status == 'completed' %}selected{% endif %}>Завершено</option><option value="overdue" {% if selected_status == 'overdue' %}selected{% endif %}>Просрочено</option></select></label>
+  <div class="report-filter-buttons"><button class="button button-primary" type="submit">Применить</button><a class="button button-light" href="{{ request.path }}">Сбросить</a></div>
+</form>

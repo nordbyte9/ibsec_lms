@@ -1,0 +1,536 @@
+.catalog-page {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.catalog-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.catalog-heading h1 {
+  margin: 0.15rem 0 0.5rem;
+  font-size: clamp(2rem, 3vw, 2.75rem);
+  font-weight: 850;
+  letter-spacing: -0.035em;
+}
+
+.catalog-eyebrow {
+  margin: 0;
+  color: var(--цвет-акцент);
+  font-size: 0.78rem;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.catalog-intro {
+  max-width: 46rem;
+  margin: 0;
+  color: var(--цвет-текст-приглушенный);
+  font-size: 1.02rem;
+}
+
+.catalog-create {
+  white-space: nowrap;
+}
+
+.catalog-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.catalog-search {
+  position: relative;
+  flex: 1 1 28rem;
+  max-width: 42rem;
+}
+
+.catalog-search .form-control {
+  padding-left: 3rem;
+}
+
+.catalog-search-icon {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  left: 1rem;
+  color: var(--цвет-текст-приглушенный);
+  font-size: 1.4rem;
+  transform: translateY(-50%);
+}
+
+.catalog-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.catalog-tab {
+  padding: 0.7rem 1rem;
+  color: #42546b;
+  background: transparent;
+  border: 0;
+  border-radius: var(--радиус-средний);
+  font-weight: 800;
+}
+
+.catalog-tab:hover,
+.catalog-tab.is-active {
+  color: var(--цвет-акцент-темный);
+  background: var(--цвет-акцент-мягкий);
+}
+
+.catalog-featured {
+  display: grid;
+  grid-template-columns: minmax(18rem, 38%) 1fr;
+  overflow: hidden;
+}
+
+.catalog-featured-image,
+.course-card-image {
+  position: relative;
+  display: block;
+  min-height: 17rem;
+  overflow: hidden;
+  background: var(--цвет-панель-2);
+}
+
+.catalog-featured-image img,
+.course-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.catalog-featured-image::after,
+.course-card-shade {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background: linear-gradient(180deg, rgba(3, 20, 38, 0.02), rgba(3, 20, 38, 0.52));
+}
+
+.catalog-image-label {
+  position: absolute;
+  z-index: 2;
+  top: 1rem;
+  left: 1rem;
+  padding: 0.42rem 0.72rem;
+  color: #fff;
+  background: rgba(3, 20, 38, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  backdrop-filter: blur(10px);
+}
+
+.catalog-featured-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.catalog-badges,
+.course-card-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.catalog-category,
+.catalog-badge,
+.catalog-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.7rem;
+  padding: 0.28rem 0.62rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 850;
+}
+
+.catalog-category {
+  color: var(--цвет-акцент-темный);
+  background: var(--цвет-акцент-мягкий);
+}
+
+.catalog-badge--important {
+  color: #9a5d00;
+  background: #fff2d8;
+}
+
+.catalog-status--доступен,
+.catalog-status--назначен {
+  color: #225f9d;
+  background: #e9f4ff;
+}
+
+.catalog-status--в-процессе {
+  color: #7a5c00;
+  background: #fff4cf;
+}
+
+.catalog-status--завершен {
+  color: #087846;
+  background: #ddf7ea;
+}
+
+.catalog-status--просрочен {
+  color: #a72d43;
+  background: #ffe5ea;
+}
+
+.catalog-featured h2 {
+  margin: 1rem 0 0.75rem;
+  font-size: clamp(1.55rem, 2.5vw, 2.2rem);
+  font-weight: 850;
+  letter-spacing: -0.03em;
+}
+
+.catalog-featured-content > p,
+.course-card-body > p,
+.catalog-note p,
+.catalog-empty p {
+  color: var(--цвет-текст-приглушенный);
+}
+
+.catalog-meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin: 1.25rem 0 0;
+}
+
+.catalog-meta div {
+  padding: 0.85rem;
+  background: var(--цвет-поверхность-мягкая);
+  border: 1px solid var(--цвет-граница);
+  border-radius: var(--радиус-средний);
+}
+
+.catalog-meta dt {
+  margin-bottom: 0.35rem;
+  color: var(--цвет-текст-приглушенный);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.catalog-meta dd {
+  margin: 0;
+  font-weight: 800;
+}
+
+.catalog-featured-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.4rem;
+}
+
+.catalog-program {
+  color: var(--цвет-текст-приглушенный);
+  font-size: 0.88rem;
+}
+
+.catalog-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 19rem;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.catalog-results,
+.catalog-sidebar {
+  display: grid;
+  gap: 1rem;
+}
+
+.catalog-section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+}
+
+.catalog-section-heading h2,
+.catalog-filter-card h2,
+.catalog-summary-card h2,
+.catalog-note h2 {
+  margin: 0;
+  font-size: 1.12rem;
+  font-weight: 850;
+}
+
+.catalog-section-heading p {
+  margin: 0.2rem 0 0;
+  color: var(--цвет-текст-приглушенный);
+}
+
+.catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.course-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.course-card[hidden],
+.catalog-featured[hidden] {
+  display: none !important;
+}
+
+.course-card-image {
+  min-height: 11rem;
+  aspect-ratio: 16 / 9;
+}
+
+.course-card-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 1rem;
+}
+
+.course-card h3 {
+  margin: 0.85rem 0 0.55rem;
+  font-size: 1.05rem;
+  font-weight: 850;
+  line-height: 1.3;
+}
+
+.course-card h3 a {
+  color: var(--цвет-текст);
+}
+
+.course-card h3 a:hover {
+  color: var(--цвет-акцент-темный);
+}
+
+.course-card-body > p {
+  display: -webkit-box;
+  min-height: 3.9rem;
+  margin-bottom: 1rem;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.course-card-facts {
+  display: grid;
+  gap: 0.35rem;
+  color: #53657b;
+  font-size: 0.82rem;
+}
+
+.course-card-action {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 1rem;
+  font-weight: 850;
+}
+
+.catalog-filter-card,
+.catalog-summary-card,
+.catalog-note {
+  padding: 1.1rem;
+}
+
+.catalog-filter-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.catalog-filter-heading button {
+  padding: 0;
+  color: var(--цвет-акцент);
+  background: transparent;
+  border: 0;
+  font-weight: 800;
+}
+
+.catalog-filter-card label:not(.catalog-switch) {
+  display: block;
+  margin: 0.9rem 0 0.4rem;
+  color: #34445a;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.catalog-switch {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-top: 1rem;
+  font-weight: 750;
+}
+
+.catalog-switch input {
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--цвет-акцент);
+}
+
+.catalog-summary-card dl {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1rem 0 0;
+}
+
+.catalog-summary-card dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.7rem;
+  border-bottom: 1px solid var(--цвет-граница);
+}
+
+.catalog-summary-card dl div:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.catalog-summary-card dt {
+  color: var(--цвет-текст-приглушенный);
+  font-weight: 700;
+}
+
+.catalog-summary-card dd {
+  margin: 0;
+  font-weight: 850;
+}
+
+.catalog-empty {
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+
+.catalog-empty-icon {
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  margin: 0 auto 1rem;
+  color: var(--цвет-акцент);
+  background: var(--цвет-акцент-мягкий);
+  border-radius: 50%;
+  font-size: 1.6rem;
+}
+
+.catalog-empty h2,
+.catalog-empty h3 {
+  margin-bottom: 0.5rem;
+  font-weight: 850;
+}
+
+@media (max-width: 78rem) {
+  .catalog-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 64rem) {
+  .catalog-featured {
+    grid-template-columns: 1fr;
+  }
+
+  .catalog-featured-image {
+    min-height: 15rem;
+  }
+
+  .catalog-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .catalog-sidebar {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 48rem) {
+  .catalog-heading,
+  .catalog-toolbar,
+  .catalog-featured-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .catalog-tabs {
+    width: 100%;
+  }
+
+  .catalog-tab {
+    flex: 1 1 auto;
+  }
+
+  .catalog-meta,
+  .catalog-sidebar,
+  .catalog-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .catalog-featured-content {
+    padding: 1.25rem;
+  }
+}
+
+/* Компактные фильтры над каталогом. */
+.catalog-toolbar {
+  display: grid !important;
+  grid-template-columns: minmax(18rem, 1.25fr) minmax(28rem, 1fr);
+  grid-template-areas:
+    "search filters"
+    "tabs tabs";
+  align-items: end;
+  gap: 0.85rem 1rem;
+  padding: 1rem 1.1rem !important;
+}
+
+.catalog-search { grid-area: search; max-width: none !important; }
+.catalog-tabs { grid-area: tabs; justify-content: flex-start; }
+.catalog-compact-filters {
+  grid-area: filters;
+  display: flex;
+  align-items: end;
+  justify-content: flex-end;
+  gap: 0.7rem;
+}
+.catalog-filter-control { display: grid; gap: 0.3rem; min-width: 13rem; }
+.catalog-filter-control > span { color: var(--цвет-текст-приглушенный); font-size: 0.78rem; }
+.catalog-filter-control .form-select { min-height: 2.65rem; }
+.catalog-switch--compact { min-height: 2.65rem; padding: 0.62rem 0.75rem; border: 1px solid var(--цвет-граница); border-radius: 0.8rem; background: #fff; white-space: nowrap; }
+.catalog-reset { min-height: 2.65rem; padding: 0 0.8rem; color: var(--цвет-акцент); border: 0; background: transparent; font-weight: 600; }
+.catalog-reset:hover { background: var(--цвет-акцент-мягкий); border-radius: 0.7rem; }
+.catalog-summary-line { display: flex; flex-wrap: wrap; gap: 0.7rem; }
+.catalog-summary-line span { padding: 0.45rem 0.75rem; color: var(--цвет-текст-приглушенный); background: #fff; border: 1px solid var(--цвет-граница); border-radius: 999px; font-size: 0.86rem; }
+.catalog-summary-line strong { color: var(--цвет-текст); }
+.catalog-layout { display: block !important; }
+.catalog-results { min-width: 0; }
+.catalog-sidebar { display: none !important; }
+
+@media (max-width: 1050px) {
+  .catalog-toolbar { grid-template-columns: 1fr; grid-template-areas: "search" "filters" "tabs"; }
+  .catalog-compact-filters { justify-content: flex-start; flex-wrap: wrap; }
+}
+@media (max-width: 640px) {
+  .catalog-compact-filters { display: grid; grid-template-columns: 1fr; }
+  .catalog-filter-control { min-width: 0; }
+  .catalog-switch--compact { width: 100%; }
+}

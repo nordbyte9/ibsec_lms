@@ -1,62 +1,55 @@
 {% extends 'base.html' %}
-{% block title %}Импорт оргструктуры{% endblock %}
+{% load static %}
+{% block title %}Импорт организационной структуры — IBSec LMS{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/service-pages.css' %}">{% endblock %}
+{% block extra_js %}<script src="{% static 'js/service-pages.js' %}"></script>{% endblock %}
+
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <div>
-    <h3 class="mb-1">Импорт организационной структуры</h3>
-    <p class="text-muted mb-0">Загрузка сотрудников, подразделений, должностей и ролей из CSV.</p>
-  </div>
-</div>
+<section class="service-page">
+  <header class="service-hero service-hero--integration">
+    <div><span class="service-eyebrow">Обмен данными</span><h1>Импорт организационной структуры</h1><p>Загрузите сотрудников, подразделения, должности и роли из подготовленного файла CSV.</p></div>
+    <div class="service-hero__meta"><span class="service-counter">{{ logs|length }}</span><span>последних операций</span></div>
+  </header>
 
-<div class="card mb-4">
-  <div class="card-body">
-    <h5>Формат CSV</h5>
-    <p>Импорт выполняется административной командой:</p>
-    <pre class="bg-light p-3 rounded">python manage.py import_org_csv path/to/org_structure.csv</pre>
-    <p class="mb-2">Обязательные заголовки:</p>
-    <pre class="bg-light p-3 rounded mb-3">username,email,first_name,last_name,department,position,role</pre>
-    <ul class="mb-0">
-      <li>существующие пользователи обновляются по имени пользователя;</li>
-      <li>подразделения и должности создаются при отсутствии;</li>
-      <li>поддерживаются роли <code>employee</code>, <code>security_officer</code> и <code>admin</code>;</li>
-      <li>результат операции сохраняется в журнале импорта.</li>
-    </ul>
-  </div>
-</div>
+  <div class="service-layout service-layout--aside">
+    <div class="service-layout__main">
+      <section class="service-panel import-upload-panel" aria-labelledby="import-upload-title">
+        <div class="service-panel__heading"><div><h2 id="import-upload-title">Загрузка CSV</h2><p>Сначала скачайте пример CSV, заполните его и загрузите обратно.</p></div><a class="service-button" href="{% url 'integrations:sample' %}">Скачать пример CSV</a></div>
+        <form method="post" enctype="multipart/form-data" class="import-upload-form">{% csrf_token %}
+          {{ form.data_file }}
+          <label class="import-dropzone" for="{{ form.data_file.id_for_label }}" data-import-dropzone>
+            <span class="import-dropzone__icon" aria-hidden="true">↑</span>
+            <strong>Перетащите файл CSV сюда</strong>
+            <span class="import-dropzone__action">или нажмите, чтобы выбрать его на компьютере</span>
+            <small>Формат CSV · размер — до 2 МБ</small>
+          </label>
+          <div class="import-file-name" data-import-file-name>Файл CSV не выбран</div>
+          {% if form.data_file.help_text %}<p class="service-muted">{{ form.data_file.help_text }}</p>{% endif %}
+          {% if form.data_file.errors %}<div class="field-errors">{{ form.data_file.errors }}</div>{% endif %}
+          <button class="service-button service-button--primary" type="submit">Начать импорт</button>
+        </form>
+      </section>
 
-<div class="card">
-  <div class="card-body">
-    <h5 class="card-title">Последние операции импорта</h5>
-    <div class="table-responsive">
-      <table class="table table-striped align-middle">
-        <thead>
-          <tr>
-            <th>Начало</th>
-            <th>Источник</th>
-            <th>Статус</th>
-            <th>Подразделения</th>
-            <th>Должности</th>
-            <th>Пользователи</th>
-            <th>Сообщение</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for log in logs %}
-            <tr>
-              <td>{{ log.started_at|date:"d.m.Y H:i" }}</td>
-              <td>{{ log.get_source_display }}</td>
-              <td>{{ log.get_status_display }}</td>
-              <td>{{ log.imported_departments }}</td>
-              <td>{{ log.imported_positions }}</td>
-              <td>{{ log.imported_users }}</td>
-              <td>{{ log.message|default:"—" }}</td>
-            </tr>
-          {% empty %}
-            <tr><td colspan="7" class="text-muted">Операции импорта ещё не выполнялись.</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
+      <section class="service-panel" aria-labelledby="import-steps-title">
+        <div class="service-panel__heading"><div><h2 id="import-steps-title">Порядок импорта</h2><p>Проверьте заголовки столбцов и значения ролей.</p></div></div>
+        <ol class="service-steps">
+          <li><span>1</span><div><strong>Скачайте пример</strong><p>Используйте пример CSV с готовой структурой столбцов.</p></div></li>
+          <li><span>2</span><div><strong>Заполните сведения</strong><p>Укажите пользователя, почту, имя, фамилию, подразделение, должность и роль.</p></div></li>
+          <li><span>3</span><div><strong>Загрузите файл</strong><p>Выберите подготовленный файл CSV в форме выше.</p></div></li>
+          <li><span>4</span><div><strong>Проверьте результат</strong><p>Итоги операции появятся в журнале ниже.</p></div></li>
+        </ol>
+      </section>
+
+      <section class="service-panel" aria-labelledby="import-history-title">
+        <div class="service-panel__heading"><div><h2 id="import-history-title">Журнал импорта</h2><p>Последние операции, включая ошибки и количество обработанных записей.</p></div></div>
+        {% if logs %}<div class="service-table-wrap"><table class="service-table"><thead><tr><th>Начало</th><th>Источник</th><th>Состояние</th><th>Подразделения</th><th>Должности</th><th>Пользователи</th><th>Сообщение</th></tr></thead><tbody>{% for log in logs %}<tr><td><time datetime="{{ log.started_at|date:'c' }}">{{ log.started_at|date:'d.m.Y H:i' }}</time></td><td>CSV</td><td><span class="service-badge {% if log.status == 'success' %}service-badge--green{% elif log.status == 'failed' %}service-badge--red{% else %}service-badge--orange{% endif %}">{{ log.get_status_display }}</span></td><td>{{ log.imported_departments }}</td><td>{{ log.imported_positions }}</td><td>{{ log.imported_users }}</td><td class="service-table__description">{{ log.message|default:'Без дополнительных сообщений' }}</td></tr>{% endfor %}</tbody></table></div>{% else %}<div class="service-empty"><span class="service-empty__icon" aria-hidden="true">↑</span><h3>Импорт ещё не выполнялся</h3><p>После первой операции здесь появятся состояние и итоговые показатели.</p></div>{% endif %}
+      </section>
     </div>
+
+    <aside class="service-layout__aside">
+      <section class="service-panel service-note service-note--blue"><h2>Что происходит при импорте</h2><ul class="service-check-list"><li>Существующие пользователи обновляются по имени пользователя.</li><li>Новые подразделения и должности создаются автоматически.</li><li>Результат операции сохраняется в журнале.</li><li>Ошибки отображаются без скрытия.</li></ul></section>
+      <section class="service-panel service-note"><h2>Перед запуском</h2><p>Сделайте резервную копию базы данных и сначала проверьте CSV-файл на тестовой среде.</p></section>
+    </aside>
   </div>
-</div>
+</section>
 {% endblock %}

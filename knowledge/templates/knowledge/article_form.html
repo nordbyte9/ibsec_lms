@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if article %}Редактирование статьи{% else %}Новая статья{% endif %} — IBSec LMS{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/knowledge-base.css' %}">{% endblock %}
+
+{% block content %}
+<section class="knowledge-editor">
+  <header class="knowledge-manager__heading">
+    <div>
+      <p class="knowledge-eyebrow">База знаний</p>
+      <h1>{% if article %}Редактирование статьи{% else %}Новая статья{% endif %}</h1>
+      <p>Заполните содержание, добавьте изображения и рабочие материалы. Статью можно сохранить как черновик.</p>
+    </div>
+    <a class="ibsec-button ibsec-button--secondary" href="{% url 'knowledge:manage' %}">К списку статей</a>
+  </header>
+
+  <form class="knowledge-editor-form" method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="knowledge-form-errors">{{ form.non_field_errors }}</div>{% endif %}
+
+    <div class="knowledge-editor-layout">
+      <div class="knowledge-editor-main">
+        <section class="knowledge-form-card">
+          <h2>Основные сведения</h2>
+          <div class="knowledge-form-grid">
+            {% include "knowledge/partials/form_field.html" with field=form.category %}
+            {% include "knowledge/partials/form_field.html" with field=form.reading_minutes %}
+            <div class="knowledge-field knowledge-field--wide">{% include "knowledge/partials/form_field_inner.html" with field=form.title %}</div>
+            <div class="knowledge-field knowledge-field--wide">{% include "knowledge/partials/form_field_inner.html" with field=form.slug %}</div>
+            <div class="knowledge-field knowledge-field--wide">{% include "knowledge/partials/form_field_inner.html" with field=form.summary %}</div>
+          </div>
+        </section>
+
+        <section class="knowledge-form-card">
+          <h2>Текст статьи</h2>
+          {% include "knowledge/partials/form_field.html" with field=form.content %}
+        </section>
+
+        <section class="knowledge-form-card">
+          <h2>Изображения внутри статьи</h2>
+          <p class="knowledge-form-card__hint">Допустимы JPEG, PNG и WebP размером до 8 МБ. Пустые строки будут пропущены.</p>
+          {{ image_formset.management_form }}
+          <div class="knowledge-formset">
+            {% for image_form in image_formset %}
+              <article class="knowledge-formset-item">
+                {{ image_form.id }}
+                <div class="knowledge-form-grid">
+                  {% include "knowledge/partials/form_field.html" with field=image_form.image %}
+                  {% include "knowledge/partials/form_field.html" with field=image_form.order %}
+                  <div class="knowledge-field knowledge-field--wide">{% include "knowledge/partials/form_field_inner.html" with field=image_form.caption %}</div>
+                  <div class="knowledge-field knowledge-field--wide">{% include "knowledge/partials/form_field_inner.html" with field=image_form.alternative_text %}</div>
+                  {% if image_form.instance.pk %}<label class="knowledge-delete-check">{{ image_form.DELETE }} <span>Удалить изображение</span></label>{% endif %}
+                </div>
+              </article>
+            {% endfor %}
+          </div>
+        </section>
+
+        <section class="knowledge-form-card">
+          <h2>Материалы для скачивания</h2>
+          <p class="knowledge-form-card__hint">Допустимы PDF, DOCX, XLSX, ZIP и TXT размером до 20 МБ.</p>
+          {{ attachment_formset.management_form }}
+          <div class="knowledge-formset">
+            {% for attachment_form in attachment_formset %}
+              <article class="knowledge-formset-item">
+                {{ attachment_form.id }}
+                <div class="knowledge-form-grid">
+                  {% include "knowledge/partials/form_field.html" with field=attachment_form.title %}
+                  {% include "knowledge/partials/form_field.html" with field=attachment_form.file %}
+                  {% if attachment_form.instance.pk %}<label class="knowledge-delete-check">{{ attachment_form.DELETE }} <span>Удалить вложение</span></label>{% endif %}
+                </div>
+              </article>
+            {% endfor %}
+          </div>
+        </section>
+      </div>
+
+      <aside class="knowledge-editor-aside">
+        <section class="knowledge-form-card">
+          <h2>Обложка</h2>
+          {% include "knowledge/partials/form_field.html" with field=form.cover_image %}
+          {% if article.cover_image %}<img class="knowledge-cover-preview" src="{{ article.cover_image.url }}" alt="Текущая обложка статьи">{% endif %}
+        </section>
+        <section class="knowledge-form-card">
+          <h2>Публикация</h2>
+          <label class="knowledge-publish-check">{{ form.is_published }}<span><strong>Опубликовать статью</strong><small>{{ form.is_published.help_text }}</small></span></label>
+          {% if form.is_published.errors %}<div class="knowledge-field-errors">{{ form.is_published.errors }}</div>{% endif %}
+        </section>
+      </aside>
+    </div>
+
+    <div class="knowledge-editor-actions">
+      <a class="ibsec-button ibsec-button--secondary" href="{% url 'knowledge:manage' %}">Отмена</a>
+      <button class="ibsec-button ibsec-button--primary" type="submit">{% if article %}Сохранить изменения{% else %}Создать статью{% endif %}</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

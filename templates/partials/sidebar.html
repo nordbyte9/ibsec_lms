@@ -1,0 +1,60 @@
+<aside class="ibsec-sidebar" id="ibsec-sidebar" aria-label="Основная навигация">
+  <div class="ibsec-sidebar__header">
+    <a class="ibsec-logo" href="{% url 'home' %}" aria-label="IBSec LMS — главная">
+      <span class="ibsec-logo__mark" aria-hidden="true">
+        <svg viewBox="0 0 32 32"><path d="M16 2.5 27 6v8.3c0 7.1-4.7 12.4-11 15.2C9.7 26.7 5 21.4 5 14.3V6l11-3.5Z" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="m11.1 15.8 3.1 3.1 6.7-7" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4"/></svg>
+      </span>
+      <span class="ibsec-logo__text">IBSec <span>LMS</span></span>
+    </a>
+    <button class="ibsec-sidebar__close" type="button" data-sidebar-close aria-label="Закрыть меню">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+    </button>
+  </div>
+
+  <nav class="ibsec-sidebar__nav">
+    <div class="ibsec-nav-group">
+      <div class="ibsec-nav-group__title">Обучение</div>
+      <a class="ibsec-nav-link {% if request.resolver_match.url_name == 'home' %}is-active{% endif %}" href="{% url 'home' %}">
+        <span class="ibsec-nav-link__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5M5.5 10.5V20h13v-9.5M9 20v-6h6v6"/></svg></span><span>Главная</span>
+      </a>
+      <a class="ibsec-nav-link {% if request.resolver_match.namespace == 'courses' %}is-active{% endif %}" href="{% url 'courses:list' %}">
+        <span class="ibsec-nav-link__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5v-16ZM4 5.5V21M8 7h8M8 11h8"/></svg></span><span>Курсы</span>
+      </a>
+      <a class="ibsec-nav-link {% if request.resolver_match.namespace == 'assignments' and request.resolver_match.url_name == 'my' %}is-active{% endif %}" href="{% url 'assignments:my' %}">
+        <span class="ibsec-nav-link__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 5h6M9 3v4M15 3v4M6 5h12a2 2 0 0 1 2 2v13H4V7a2 2 0 0 1 2-2ZM8 11h8M8 15h5"/></svg></span><span>Мои назначения</span>
+      </a>
+      <a class="ibsec-nav-link {% if request.resolver_match.namespace == 'quizzes' %}is-active{% endif %}" href="{% url 'quizzes:attempt_history' %}">
+        <span class="ibsec-nav-link__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9M12 7v5l3 2M16 3h5v5"/></svg></span><span>История тестов</span>
+      </a>
+      <a class="ibsec-nav-link {% if request.resolver_match.namespace == 'knowledge' %}is-active{% endif %}" href="{% url 'knowledge:list' %}">
+        <span class="ibsec-nav-link__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5v-16ZM8 7h8M8 11h8M8 15h5"/></svg></span><span>База знаний</span>
+      </a>
+    </div>
+
+    <div class="ibsec-nav-group">
+      <div class="ibsec-nav-group__title">Мой прогресс</div>
+      <a class="ibsec-nav-link {% if request.resolver_match.namespace == 'reports' and request.resolver_match.url_name == 'my_progress' %}is-active{% endif %}" href="{% url 'reports:my_progress' %}">
+        <span class="ibsec-nav-link__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-8M22 19H2"/></svg></span><span>Мой прогресс</span>
+      </a>
+    </div>
+
+    {% if rbac.security_staff %}
+    <div class="ibsec-nav-group">
+      <div class="ibsec-nav-group__title">Управление</div>
+      {% if rbac.manage_assignments %}<a class="ibsec-nav-link {% if request.resolver_match.namespace == 'assignments' and request.resolver_match.url_name != 'my' %}is-active{% endif %}" href="{% url 'assignments:list' %}"><span class="ibsec-nav-link__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 4h8M9 2h6v4H9zM6 4H4v17h16V4h-2M8 11h8M8 15h8"/></svg></span><span>Назначения</span></a>{% endif %}
+      {% if rbac.view_reports %}<a class="ibsec-nav-link {% if request.resolver_match.namespace == 'reports' and request.resolver_match.url_name != 'my_progress' %}is-active{% endif %}" href="{% url 'reports:dashboard' %}"><span class="ibsec-nav-link__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-8M22 19H2M3 19h18"/></svg></span><span>Отчёты</span></a>{% endif %}
+      {% if rbac.view_audit %}<a class="ibsec-nav-link {% if request.resolver_match.namespace == 'audit' %}is-active{% endif %}" href="{% url 'audit:list' %}"><span class="ibsec-nav-link__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 5 3.3 8.7 8 10 4.7-1.3 8-5 8-10V6l-8-3Z"/><path d="m9 12 2 2 4-5"/></svg></span><span>Журнал аудита</span></a>{% endif %}
+      {% if rbac.view_integrations %}<a class="ibsec-nav-link {% if request.resolver_match.namespace == 'integrations' %}is-active{% endif %}" href="{% url 'integrations:index' %}"><span class="ibsec-nav-link__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 12a4 4 0 1 1-1.2-2.8M16 12a4 4 0 1 1 1.2 2.8M9 12h6"/></svg></span><span>Интеграции</span></a>{% endif %}
+      {% if rbac.manage_knowledge %}<a class="ibsec-nav-link {% if request.resolver_match.namespace == 'knowledge' and request.resolver_match.url_name != 'list' and request.resolver_match.url_name != 'detail' %}is-active{% endif %}" href="{% url 'knowledge:manage' %}"><span class="ibsec-nav-link__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5v-16ZM8 7h8M8 11h8M8 15h5"/><path d="M17 14v6M14 17h6"/></svg></span><span>Управление статьями</span></a>{% endif %}
+      {% if rbac.manage_courses %}<a class="ibsec-nav-link {% if request.resolver_match.namespace == 'courses' and request.resolver_match.url_name == 'create' %}is-active{% endif %}" href="{% url 'courses:create' %}"><span class="ibsec-nav-link__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/><circle cx="12" cy="12" r="9"/></svg></span><span>Создать курс</span></a>{% endif %}
+    </div>
+    {% endif %}
+  </nav>
+
+  <div class="ibsec-sidebar__footer">
+    <a class="ibsec-help-card {% if request.resolver_match.url_name == 'help' %}is-active{% endif %}" href="{% url 'help' %}">
+      <span class="ibsec-help-card__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 13v-2a8 8 0 0 1 16 0v2M4 13H2v5h4v-5H4ZM20 13h2v5h-4v-5h2ZM18 18c0 2-2 3-5 3"/></svg></span>
+      <span><strong>Нужна помощь?</strong><small>Инструкции по работе с системой</small></span>
+    </a>
+  </div>
+</aside>

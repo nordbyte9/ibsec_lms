@@ -1,25 +1,48 @@
 {% extends 'base.html' %}
-{% block title %}Тест по курсу {{ course.title }}{% endblock %}
+{% load static %}
+
+{% block title %}{{ quiz.title|default:'Проверка знаний' }} — IBSec LMS{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/quiz-interface.css' %}">{% endblock %}
+
 {% block content %}
-{% if quiz %}
-<h3>{{ quiz.title }}</h3>
-<div class="card mb-3">
-  <div class="card-body">
-    <p class="mb-2">{{ quiz.description }}</p>
-    <p class="mb-2"><b>Проходной балл:</b> {{ quiz.pass_score }}%</p>
-    <p class="mb-2"><b>Лимит времени:</b> {{ quiz.time_limit_minutes }} мин.</p>
-    <p class="mb-2"><b>Доступно попыток:</b> {{ quiz.max_attempts }}</p>
-    <p class="mb-0"><b>Использовано попыток:</b> {{ attempts_used }}</p>
-  </div>
-</div>
-{% if attempts_used < quiz.max_attempts %}
-  <a class="btn btn-success" href="{% url 'quizzes:take' quiz.id %}">Начать тест</a>
-{% else %}
-  <div class="alert alert-warning">Лимит попыток исчерпан.</div>
-{% endif %}
-{% else %}
-<h3>Тест по курсу {{ course.title }}</h3>
-  <div class="alert alert-secondary">Для этого курса пока нет активного теста.</div>
-{% endif %}
-<a class="btn btn-outline-secondary ms-2" href="{% url 'quizzes:attempt_history' %}">История попыток</a>
+<section class="quiz-entry quiz-entry--compact">
+  <nav class="quiz-breadcrumbs" aria-label="Навигационная цепочка">
+    <a href="{% url 'courses:list' %}">Курсы</a><span aria-hidden="true">›</span>
+    <a href="{% url 'courses:detail' course.pk %}">{{ course.title }}</a><span aria-hidden="true">›</span>
+    <span>Проверка знаний</span>
+  </nav>
+
+  {% if quiz %}
+  <article class="quiz-entry-card quiz-entry-card--compact ibsec-card">
+    <div class="quiz-entry-content">
+      <span class="quiz-eyebrow">Курс «{{ course.title }}»</span>
+      <h1>{{ quiz.title }}</h1>
+      <p class="quiz-entry-description">{{ quiz.description|default:'Ответьте на вопросы и подтвердите усвоение учебного материала.' }}</p>
+
+      <div class="quiz-rules-grid">
+        <div class="quiz-rule"><span class="quiz-rule-icon">⌛</span><span><strong>{{ quiz.time_limit_minutes }} мин.</strong><small>Время прохождения</small></span></div>
+        <div class="quiz-rule"><span class="quiz-rule-icon">✓</span><span><strong>{{ quiz.pass_score }}%</strong><small>Проходной результат</small></span></div>
+        <div class="quiz-rule"><span class="quiz-rule-icon">↻</span><span><strong>{{ quiz.max_attempts }}</strong><small>Всего попыток</small></span></div>
+        <div class="quiz-rule"><span class="quiz-rule-icon">{{ quiz.questions.count }}</span><span><strong>Вопросов</strong><small>В текущей проверке</small></span></div>
+      </div>
+
+      <div class="quiz-attempt-summary">
+        <div><span>Использовано попыток</span><strong>{{ attempts_used }} из {{ quiz.max_attempts }}</strong></div>
+        <div><span>Осталось попыток</span><strong>{{ attempts_left }}</strong></div>
+      </div>
+
+      <div class="quiz-entry-note"><strong>Перед началом</strong><p>Убедитесь, что у вас достаточно времени. После запуска отсчёт продолжится, даже если закрыть страницу.</p></div>
+
+      <div class="quiz-entry-actions">
+        <a class="btn btn-outline-secondary" href="{% url 'courses:detail' course.pk %}">Вернуться к курсу</a>
+        {% if active_attempt %}<a class="btn btn-primary" href="{% url 'quizzes:take' quiz.pk %}">Продолжить попытку</a>
+        {% elif attempts_left > 0 %}<a class="btn btn-primary" href="{% url 'quizzes:take' quiz.pk %}">Начать проверку</a>
+        {% else %}<button class="btn btn-secondary" type="button" disabled>Попытки закончились</button>{% endif %}
+      </div>
+    </div>
+  </article>
+  {% else %}
+  <article class="quiz-empty ibsec-card"><div class="quiz-empty-icon">?</div><h1>Проверка знаний пока не добавлена</h1><p>Вернитесь к материалам курса. Проверка станет доступна после публикации преподавателем.</p><a class="btn btn-primary" href="{% url 'courses:detail' course.pk %}">Вернуться к курсу</a></article>
+  {% endif %}
+</section>
 {% endblock %}

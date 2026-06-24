@@ -1,0 +1,196 @@
+:root {
+  --цвет-фон: #f4f7fb;
+  --цвет-поверхность: #ffffff;
+  --цвет-поверхность-мягкая: #f8fbff;
+  --цвет-текст: #122033;
+  --цвет-текст-приглушенный: #66758a;
+  --цвет-граница: #dfe7f1;
+  --цвет-граница-сильная: #cbd8e6;
+  --цвет-панель-1: #031426;
+  --цвет-панель-2: #072542;
+  --цвет-панель-3: #0a355d;
+  --цвет-акцент: #1685ff;
+  --цвет-акцент-темный: #0a6fda;
+  --цвет-акцент-мягкий: #eaf4ff;
+  --цвет-успех: #18a96b;
+  --цвет-предупреждение: #e99a18;
+  --цвет-ошибка: #d94d63;
+  --цвет-информация: #1685ff;
+
+  --радиус-малый: 0.65rem;
+  --радиус-средний: 0.95rem;
+  --радиус-большой: 1.25rem;
+  --тень-мягкая: 0 8px 24px rgba(7, 32, 58, 0.07);
+  --тень-панели: 0 18px 45px rgba(3, 20, 38, 0.12);
+  --переход: 180ms ease;
+  --ширина-панели: 17.5rem;
+  --высота-верхней-панели: 4.5rem;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 20rem;
+  background: var(--цвет-фон);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--цвет-текст);
+  background: var(--цвет-фон);
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--цвет-акцент);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--цвет-акцент-темный);
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  transition: color var(--переход), background-color var(--переход), border-color var(--переход), box-shadow var(--переход), transform var(--переход);
+}
+
+:focus-visible {
+  outline: 3px solid rgba(22, 133, 255, 0.28);
+  outline-offset: 2px;
+}
+
+.skip-link {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 2000;
+  transform: translateY(-160%);
+  padding: 0.75rem 1rem;
+  color: #fff;
+  background: var(--цвет-акцент);
+  border-radius: var(--радиус-малый);
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+  color: #fff;
+}
+
+.card,
+.ibsec-card {
+  background: var(--цвет-поверхность);
+  border: 1px solid var(--цвет-граница);
+  border-radius: var(--радиус-большой);
+  box-shadow: var(--тень-мягкая);
+}
+
+.btn {
+  border-radius: var(--радиус-средний);
+  font-weight: 700;
+}
+
+.btn-primary {
+  background: var(--цвет-акцент);
+  border-color: var(--цвет-акцент);
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  background: var(--цвет-акцент-темный);
+  border-color: var(--цвет-акцент-темный);
+}
+
+.form-control,
+.form-select {
+  min-height: 2.8rem;
+  border-color: var(--цвет-граница-сильная);
+  border-radius: var(--радиус-средний);
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--цвет-акцент);
+  box-shadow: 0 0 0 0.22rem rgba(22, 133, 255, 0.12);
+}
+
+.table {
+  color: var(--цвет-текст);
+}
+
+.table thead th {
+  color: #34445a;
+  font-weight: 800;
+  border-bottom-color: var(--цвет-граница);
+}
+
+.badge {
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+/* Итоговая типографика: спокойная и строгая. */
+body {
+  font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  letter-spacing: 0;
+}
+
+h1, h2, h3, h4, h5, h6,
+.catalog-heading h1,
+.management-heading h1,
+.report-heading h1,
+.quiz-entry-content h1,
+.service-hero h1 {
+  color: var(--цвет-текст);
+  font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+  font-weight: 600 !important;
+  letter-spacing: -0.015em !important;
+  line-height: 1.2;
+}
+
+strong,
+.btn,
+.button,
+.ibsec-nav-link,
+.ibsec-nav-group__title,
+.catalog-eyebrow,
+.report-eyebrow,
+.service-eyebrow {
+  font-weight: 600 !important;
+}
+
+.catalog-eyebrow,
+.report-eyebrow,
+.service-eyebrow,
+.ibsec-nav-group__title {
+  letter-spacing: 0.06em !important;
+}
+
+.btn:disabled,
+.button[aria-disabled="true"],
+button:disabled {
+  color: #526377 !important;
+  background: #e2e8f0 !important;
+  border-color: #c8d2de !important;
+  opacity: 1 !important;
+}
+
+/* Единая строгая типографика и вертикальный ритм. */
+body{font-family:"Segoe UI",Tahoma,Arial,sans-serif;font-weight:400;color:var(--цвет-текст)}
+h1,h2,h3,h4,h5,h6{font-family:"Segoe UI",Tahoma,Arial,sans-serif;font-weight:600!important;letter-spacing:-.012em!important;line-height:1.25;margin-top:0}
+h1{font-size:clamp(1.9rem,3vw,2.55rem)}
+h2{font-size:clamp(1.25rem,2vw,1.6rem)}
+h3{font-size:1.05rem}
+p{line-height:1.55}
+.home-welcome h1,.catalog-heading h1,.management-heading h1,.report-heading h1,.service-hero h1,.quiz-entry-content h1,.quiz-taking h1,.quiz-result-page h1,.quiz-history-page h1{font-weight:600!important;letter-spacing:-.015em!important}
+.home-eyebrow,.home-panel__kicker,.catalog-eyebrow,.report-eyebrow,.service-eyebrow,.quiz-eyebrow{font-weight:600!important;letter-spacing:.055em!important}
+.card h1,.card h2,.card h3,.ibsec-card h1,.ibsec-card h2,.ibsec-card h3{margin-bottom:.45rem}

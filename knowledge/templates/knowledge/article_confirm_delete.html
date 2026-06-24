@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Удаление статьи — IBSec LMS{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/knowledge-base.css' %}">{% endblock %}
+{% block content %}
+<section class="knowledge-confirm-card">
+  <p class="knowledge-eyebrow">База знаний</p>
+  <h1>Удалить статью?</h1>
+  <p>Статья «{{ article.title }}», изображения и вложения будут удалены без возможности восстановления.</p>
+  <form method="post">{% csrf_token %}<a class="ibsec-button ibsec-button--secondary" href="{% url 'knowledge:manage' %}">Отмена</a><button class="ibsec-button knowledge-danger-button" type="submit">Удалить</button></form>
+</section>
+{% endblock %}

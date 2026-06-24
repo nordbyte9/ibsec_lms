@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% load static knowledge_design %}
+
+{% block title %}{{ article.title }} — IBSec LMS{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/knowledge-base.css' %}">{% endblock %}
+{% block extra_js %}<script src="{% static 'js/knowledge-base.js' %}"></script>{% endblock %}
+
+{% block content %}
+{% article_cover article as cover %}
+<article class="article-page">
+  {% if is_preview %}
+    <div class="knowledge-preview-banner"><strong>Предварительный просмотр</strong><span>Статья пока не опубликована и недоступна сотрудникам.</span><a href="{% url 'knowledge:edit' article.pk %}">Вернуться к редактированию</a></div>
+  {% endif %}
+  <nav class="article-breadcrumbs" aria-label="Навигационная цепочка">
+    <a href="{% url 'knowledge:list' %}">База знаний</a><span>›</span><span>{{ article.category.name }}</span>
+    {% if can_manage_knowledge %}<a class="article-edit-link" href="{% url 'knowledge:edit' article.pk %}">Редактировать статью</a>{% endif %}
+  </nav>
+
+  <div class="article-layout">
+    <div class="article-main">
+      <header class="article-hero">
+        <img src="{{ cover }}" alt="Обложка статьи «{{ article.title }}»">
+        <div class="article-hero__body">
+          <span class="knowledge-badge">{{ article.category.name }}</span>
+          <h1>{{ article.title }}</h1>
+          <p>{{ article.summary }}</p>
+          <div class="knowledge-meta">
+            <span>{% if article.author %}Автор: {{ article.author.get_full_name|default:article.author.username }}{% else %}Команда IBSec{% endif %}</span>
+            <span>{{ article.reading_minutes }} мин. чтения</span>
+            <span>Обновлено {{ article.updated_at|date:"d.m.Y" }}</span>
+          </div>
+        </div>
+      </header>
+
+      <section class="article-content" data-article-content>
+        {{ article.content|linebreaks }}
+
+        {% for image in article.images.all %}
+          <figure class="article-figure">
+            <img src="{{ image.image.url }}" alt="{{ image.alternative_text|default:image.caption|default:article.title }}" loading="lazy">
+            {% if image.caption %}<figcaption>{{ image.caption }}</figcaption>{% endif %}
+          </figure>
+        {% endfor %}
+      </section>
+    </div>
+
+    <aside class="article-aside">
+      <section class="article-side-card">
+        <h2>Содержание</h2>
+        <nav class="article-toc" data-article-toc><span>Содержание формируется автоматически</span></nav>
+      </section>
+
+      {% if article.attachments.all %}
+      <section class="article-side-card">
+        <h2>Материалы для скачивания</h2>
+        <div class="article-files">
+          {% for attachment in article.attachments.all %}
+            <a href="{% url 'knowledge:attachment_download' attachment.pk %}">
+              <span class="article-files__icon">{{ attachment.extension|upper }}</span>
+              <span><strong>{{ attachment.title }}</strong><small>{{ attachment.size_label }}</small></span>
+              <span aria-hidden="true">↓</span>
+            </a>
+          {% endfor %}
+        </div>
+      </section>
+      {% endif %}
+
+      {% if related_articles %}
+      <section class="article-side-card">
+        <h2>Похожие статьи</h2>
+        <div class="related-articles">
+          {% for related in related_articles %}
+            <a href="{{ related.get_absolute_url }}"><strong>{{ related.title }}</strong><small>{{ related.reading_minutes }} мин. чтения</small></a>
+          {% endfor %}
+        </div>
+      </section>
+      {% endif %}
+    </aside>
+  </div>
+</article>
+{% endblock %}

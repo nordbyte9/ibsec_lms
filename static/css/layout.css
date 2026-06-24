@@ -1,0 +1,627 @@
+body.ibsec-menu-open {
+  overflow: hidden;
+}
+
+.ibsec-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: var(--ширина-панели) minmax(0, 1fr);
+}
+
+.ibsec-sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 1040;
+  width: var(--ширина-панели);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: #fff;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(22, 133, 255, 0.16), transparent 28%),
+    linear-gradient(180deg, var(--цвет-панель-1) 0%, var(--цвет-панель-2) 58%, #03182d 100%);
+  border-right: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: var(--тень-панели);
+}
+
+.ibsec-sidebar__header {
+  min-height: var(--высота-верхней-панели);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.ibsec-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  color: #fff;
+}
+
+.ibsec-logo:hover {
+  color: #fff;
+}
+
+.ibsec-logo__mark {
+  width: 2.35rem;
+  height: 2.35rem;
+  display: grid;
+  place-items: center;
+  color: #25a8ff;
+}
+
+.ibsec-logo__mark svg {
+  width: 100%;
+  height: 100%;
+}
+
+.ibsec-logo__text {
+  font-size: 1.35rem;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.ibsec-logo__text span {
+  color: #9fb3c9;
+  font-weight: 600;
+}
+
+.ibsec-sidebar__close,
+.ibsec-menu-button,
+.ibsec-topbar__help {
+  width: 2.55rem;
+  height: 2.55rem;
+  display: inline-grid;
+  place-items: center;
+  border: 0;
+  border-radius: 0.8rem;
+  background: transparent;
+}
+
+.ibsec-sidebar__close {
+  display: none;
+  color: #fff;
+}
+
+.ibsec-sidebar__close svg,
+.ibsec-menu-button svg,
+.ibsec-topbar__help svg {
+  width: 1.3rem;
+  height: 1.3rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ibsec-sidebar__nav {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 1rem 0.85rem 1.25rem;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+
+.ibsec-nav-group + .ibsec-nav-group {
+  margin-top: 1.25rem;
+}
+
+.ibsec-nav-group__title {
+  margin: 0 0.7rem 0.45rem;
+  color: #8fa8c2;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ibsec-nav-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  min-height: 2.75rem;
+  padding: 0.62rem 0.8rem;
+  color: #dce8f4;
+  border: 1px solid transparent;
+  border-radius: 0.8rem;
+  font-size: 0.93rem;
+  font-weight: 650;
+}
+
+.ibsec-nav-link:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.ibsec-nav-link.is-active {
+  color: #fff;
+  background: linear-gradient(90deg, rgba(22, 133, 255, 0.28), rgba(22, 133, 255, 0.11));
+  border-color: rgba(93, 179, 255, 0.18);
+  box-shadow: inset 3px 0 0 #23a8ff;
+}
+
+.ibsec-nav-link__icon {
+  width: 1.3rem;
+  height: 1.3rem;
+  display: grid;
+  place-items: center;
+  color: #8fb4d8;
+  flex: 0 0 auto;
+}
+
+.ibsec-nav-link.is-active .ibsec-nav-link__icon,
+.ibsec-nav-link:hover .ibsec-nav-link__icon {
+  color: #49bbff;
+}
+
+.ibsec-nav-link__icon svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ibsec-sidebar__footer {
+  flex: 0 0 auto;
+  padding: 0.9rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.ibsec-help-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(139, 184, 224, 0.16);
+  border-radius: 0.9rem;
+}
+
+.ibsec-help-card:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.075);
+}
+
+.ibsec-help-card__icon {
+  width: 2.2rem;
+  height: 2.2rem;
+  display: grid;
+  place-items: center;
+  color: #6fc8ff;
+  background: rgba(22, 133, 255, 0.12);
+  border-radius: 0.7rem;
+  flex: 0 0 auto;
+}
+
+.ibsec-help-card__icon svg {
+  width: 1.3rem;
+  height: 1.3rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ibsec-help-card strong,
+.ibsec-help-card small {
+  display: block;
+}
+
+.ibsec-help-card strong {
+  font-size: 0.86rem;
+}
+
+.ibsec-help-card small,
+.ibsec-sidebar__guest-note {
+  color: #9db2c8;
+  font-size: 0.75rem;
+}
+
+.ibsec-sidebar__guest-note {
+  padding: 0.5rem;
+  line-height: 1.5;
+}
+
+.ibsec-workspace {
+  min-width: 0;
+  grid-column: 2;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.ibsec-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 1020;
+  min-height: var(--высота-верхней-панели);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  color: #fff;
+  background: linear-gradient(90deg, #061b31 0%, #04182c 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ibsec-topbar__left,
+.ibsec-topbar__right {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.ibsec-topbar__left {
+  gap: 0.75rem;
+  flex: 1 1 auto;
+}
+
+.ibsec-topbar__right {
+  gap: 0.55rem;
+  flex: 0 0 auto;
+}
+
+.ibsec-menu-button {
+  display: none;
+  color: #d9e8f5;
+}
+
+.ibsec-menu-button:hover,
+.ibsec-topbar__help:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.ibsec-page-context {
+  color: #cad8e6;
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ibsec-breadcrumbs {
+  min-width: 0;
+}
+
+.ibsec-breadcrumbs ol {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+
+.ibsec-breadcrumbs li {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+  color: #8fa8c2;
+  font-size: 0.88rem;
+}
+
+.ibsec-breadcrumbs a,
+.ibsec-breadcrumbs [aria-current="page"] {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ibsec-breadcrumbs a {
+  color: #c9d7e5;
+}
+
+.ibsec-breadcrumbs [aria-current="page"] {
+  color: #fff;
+  font-weight: 700;
+}
+
+.ibsec-topbar__help {
+  color: #cbd9e7;
+}
+
+.ibsec-user-menu {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+  padding: 0.25rem 0.35rem;
+  color: #fff;
+  background: transparent;
+  border: 0;
+  border-radius: 0.8rem;
+}
+
+.ibsec-user-menu:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.ibsec-user-menu__avatar {
+  width: 2.35rem;
+  height: 2.35rem;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: linear-gradient(145deg, #1685ff, #35b7ff);
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+.ibsec-user-menu__text {
+  min-width: 0;
+  text-align: left;
+}
+
+.ibsec-user-menu__text strong,
+.ibsec-user-menu__text small {
+  display: block;
+  max-width: 13rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ibsec-user-menu__text strong {
+  color: #fff;
+  font-size: 0.88rem;
+}
+
+.ibsec-user-menu__text small {
+  color: #95aac0;
+  font-size: 0.72rem;
+}
+
+.ibsec-user-menu__chevron {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: #91a8bd;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ibsec-dropdown-menu {
+  min-width: 13rem;
+  padding: 0.45rem;
+  border: 1px solid var(--цвет-граница);
+  border-radius: 0.9rem;
+  box-shadow: var(--тень-мягкая);
+}
+
+.ibsec-dropdown-menu .dropdown-item {
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.65rem;
+  font-weight: 650;
+}
+
+.ibsec-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  background: var(--цвет-фон);
+}
+
+.ibsec-content {
+  width: min(100%, 118rem);
+  margin: 0 auto;
+  padding: 1.4rem;
+}
+
+.ibsec-messages {
+  display: grid;
+  gap: 0.65rem;
+  margin-bottom: 1rem;
+}
+
+.ibsec-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  padding: 0.85rem 1rem;
+  color: #21405f;
+  background: #eef7ff;
+  border: 1px solid #cde6ff;
+  border-radius: 0.9rem;
+}
+
+.ibsec-message__icon {
+  width: 1.2rem;
+  height: 1.2rem;
+  flex: 0 0 auto;
+  color: var(--цвет-информация);
+}
+
+.ibsec-message__icon svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ibsec-message--success {
+  color: #176646;
+  background: #edf9f4;
+  border-color: #cbeedc;
+}
+
+.ibsec-message--warning {
+  color: #7c5312;
+  background: #fff8e9;
+  border-color: #f6dfad;
+}
+
+.ibsec-message--error,
+.ibsec-message--danger {
+  color: #7d2d3a;
+  background: #fff0f2;
+  border-color: #f4cbd2;
+}
+
+.ibsec-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1030;
+  background: rgba(1, 11, 22, 0.58);
+  backdrop-filter: blur(2px);
+}
+
+@media (max-width: 1199.98px) {
+  .ibsec-shell {
+    display: block;
+  }
+
+  .ibsec-workspace {
+    min-height: 100vh;
+  }
+
+  .ibsec-sidebar {
+    transform: translateX(-105%);
+    transition: transform 220ms ease;
+  }
+
+  body.ibsec-menu-open .ibsec-sidebar {
+    transform: translateX(0);
+  }
+
+  .ibsec-sidebar__close,
+  .ibsec-menu-button {
+    display: inline-grid;
+  }
+}
+
+@media (max-width: 767.98px) {
+  :root {
+    --высота-верхней-панели: 4rem;
+  }
+
+  .ibsec-topbar {
+    gap: 0.75rem;
+    padding-inline: 0.8rem;
+  }
+
+  .ibsec-breadcrumbs li:not(:last-child),
+  .ibsec-page-context,
+  .ibsec-user-menu__text,
+  .ibsec-user-menu__chevron {
+    display: none;
+  }
+
+  .ibsec-content {
+    padding: 0.9rem;
+  }
+}
+
+@media (max-width: 479.98px) {
+  :root {
+    --ширина-панели: min(19rem, 88vw);
+  }
+
+  .ibsec-topbar__help {
+    display: none;
+  }
+}
+
+/* Публичная оболочка используется только для входа и регистрации. */
+.ibsec-public-page {
+  min-height: 100vh;
+  background: linear-gradient(145deg, #f2f6fb 0%, #edf3f9 100%);
+}
+
+.ibsec-public-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.ibsec-public-header {
+  min-height: 4.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: 0 2rem;
+  color: #fff;
+  background: linear-gradient(90deg, #061b31, #08233e);
+}
+
+.ibsec-public-header .ibsec-logo {
+  flex: 0 0 auto;
+}
+
+.ibsec-public-header__caption {
+  color: #c8d7e5;
+  font-size: 0.9rem;
+}
+
+.ibsec-public-main {
+  flex: 1 1 auto;
+  display: grid;
+  place-items: center;
+  padding: 2rem 1rem;
+}
+
+.ibsec-public-content {
+  width: min(100%, 38rem);
+}
+
+.ibsec-help-card.is-active {
+  border-color: rgba(73, 187, 255, 0.7);
+  background: rgba(22, 133, 255, 0.18);
+  box-shadow: inset 3px 0 0 #34b5ff;
+}
+
+.ibsec-user-menu__avatar--image {
+  object-fit: cover;
+  overflow: hidden;
+}
+
+.ibsec-sidebar__nav {
+  padding-bottom: 0.5rem;
+}
+
+.ibsec-sidebar__footer {
+  margin-top: auto;
+}
+
+@media (max-width: 767.98px) {
+  .ibsec-public-header {
+    padding-inline: 1rem;
+  }
+  .ibsec-public-header__caption {
+    display: none;
+  }
+  .ibsec-public-main {
+    padding: 1rem;
+  }
+}
+
+/* Публичные страницы используют всю доступную ширину. Ограничения задаются конкретным экраном. */
+.ibsec-public-content {
+  width: 100%;
+  max-width: none;
+}
+
+.ibsec-public-main {
+  place-items: stretch;
+}

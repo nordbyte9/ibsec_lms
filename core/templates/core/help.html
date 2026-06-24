@@ -1,79 +1,89 @@
 {% extends 'base.html' %}
-{% block title %}Справка по системе{% endblock %}
-{% block content %}
-<div class="mb-4">
-  <h1 class="h3">Справка по системе</h1>
-  <p class="text-muted mb-0">IBSec LMS — корпоративная система обязательного обучения по информационной безопасности.</p>
-</div>
+{% load static %}
 
-<div class="row g-4">
-  <div class="col-lg-6">
-    <div class="card h-100">
-      <div class="card-body">
-        <h5>Назначение системы</h5>
-        <p>Система помогает назначать обязательное ИБ-обучение, контролировать сроки, проверять знания, собирать отчётность и вести аудит действий.</p>
-        <h6>Основные разделы</h6>
-        <ul class="mb-0">
-          <li><strong>Курсы</strong> — каталог и материалы обучения.</li>
-          <li><strong>Назначения</strong> — планирование обязательного обучения.</li>
-          <li><strong>Тесты</strong> — проверка знаний и попытки сдачи.</li>
-          <li><strong>Отчеты</strong> — контроль прогресса и выгрузки CSV.</li>
-          <li><strong>Аудит</strong> — журнал действий пользователей.</li>
-          <li><strong>Импорт оргструктуры</strong> — загрузка сотрудников, подразделений, должностей и ролей из CSV.</li>
-        </ul>
-      </div>
+{% block title %}Инструкции по работе с системой — IBSec LMS{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/service-pages.css' %}">{% endblock %}
+{% block extra_js %}<script src="{% static 'js/service-pages.js' %}"></script>{% endblock %}
+
+{% block content %}
+<section class="service-page">
+  <header class="service-hero service-hero--help">
+    <div>
+      <span class="service-eyebrow">Помощь пользователю</span>
+      <h1>Справка по системе</h1>
+      <p>Пошаговые подсказки по личному кабинету, обучению, проверке знаний и доступным функциям.</p>
     </div>
-  </div>
-  <div class="col-lg-6">
-    <div class="card h-100">
-      <div class="card-body">
-        <h5>Роли пользователей</h5>
-        <ul>
-          <li><strong>employee</strong> — проходит назначенные курсы и тесты, видит личный прогресс.</li>
-          <li><strong>security_officer</strong> — назначает обучение, смотрит отчеты, аудит и журнал импорта.</li>
-          <li><strong>admin</strong> — управляет системой и имеет доступ к Django admin.</li>
-        </ul>
-      </div>
+  </header>
+
+  <nav class="service-help-nav" aria-label="Разделы инструкций">
+    <a href="#account">Личный кабинет</a>
+    <a href="#courses">Обучение</a>
+    <a href="#quiz">Проверка знаний</a>
+    <a href="#results">Результаты</a>
+    {% if rbac.security_staff %}<a href="#management">Управление</a>{% endif %}
+    <a href="#questions">Частые вопросы</a>
+  </nav>
+
+  <section id="account" class="service-section">
+    <div class="service-section__heading"><span class="service-eyebrow">Личный кабинет</span><h2>Настройка учётной записи</h2></div>
+    <div class="service-feature-grid">
+      <article class="service-feature-card"><span>01</span><h3>Откройте личный кабинет</h3><p>Нажмите на своё имя в правом верхнем углу и выберите пункт «Личный кабинет».</p></article>
+      <article class="service-feature-card"><span>02</span><h3>Обновите сведения</h3><p>Укажите имя, фамилию, электронную почту, подразделение и должность.</p></article>
+      <article class="service-feature-card"><span>03</span><h3>Добавьте изображение</h3><p>Загрузите фотографию в формате JPEG, PNG или WebP и сохраните изменения.</p></article>
     </div>
-  </div>
-  <div class="col-lg-4">
-    <div class="card h-100">
-      <div class="card-body">
-        <h5>Инструкция для сотрудника</h5>
-        <ol class="mb-0">
-          <li>Откройте «Мои назначения».</li>
-          <li>Перейдите в курс.</li>
-          <li>Изучите материалы и пройдите тест.</li>
-          <li>Проверьте результат и личный прогресс.</li>
-        </ol>
-      </div>
+  </section>
+
+  <section id="courses" class="service-panel service-guide-card">
+    <div class="service-guide-card__number">1</div>
+    <h2>Как пройти назначенный курс</h2>
+    <ol>
+      <li>Откройте раздел «Мои назначения».</li>
+      <li>Выберите курс со статусом «Назначено» или «В процессе».</li>
+      <li>Изучите уроки и скачайте доступные материалы.</li>
+      <li>После изучения откройте проверку знаний.</li>
+    </ol>
+  </section>
+
+  <section id="quiz" class="service-panel service-guide-card">
+    <div class="service-guide-card__number">2</div>
+    <h2>Как пройти проверку знаний</h2>
+    <ol>
+      <li>Проверьте ограничение времени и количество оставшихся попыток.</li>
+      <li>Нажмите «Начать проверку».</li>
+      <li>Выберите ответ в каждом вопросе.</li>
+      <li>Нажмите «Завершить проверку» и подтвердите отправку.</li>
+    </ol>
+  </section>
+
+  <section id="results" class="service-panel service-guide-card">
+    <div class="service-guide-card__number">3</div>
+    <h2>Где посмотреть результаты</h2>
+    <ol>
+      <li>Откройте раздел «История тестов» для просмотра всех попыток.</li>
+      <li>Откройте «Мой прогресс» для сводных показателей.</li>
+      <li>Подтверждающий документ доступен после успешного завершения назначения.</li>
+    </ol>
+  </section>
+
+  {% if rbac.security_staff %}
+  <section id="management" class="service-section">
+    <div class="service-section__heading"><span class="service-eyebrow">Для ответственного сотрудника</span><h2>Управление обучением</h2></div>
+    <div class="service-feature-grid">
+      <article class="service-feature-card"><span>01</span><h3>Назначения</h3><p>Создавайте назначения, устанавливайте сроки и контролируйте состояния прохождения.</p></article>
+      <article class="service-feature-card"><span>02</span><h3>Отчёты</h3><p>Используйте фильтры, диаграммы и выгрузки для анализа обучения.</p></article>
+      <article class="service-feature-card"><span>03</span><h3>Журнал аудита</h3><p>Проверяйте значимые действия пользователей и системные операции.</p></article>
     </div>
-  </div>
-  <div class="col-lg-4">
-    <div class="card h-100">
-      <div class="card-body">
-        <h5>Инструкция для ответственного за ИБ</h5>
-        <ol class="mb-0">
-          <li>Назначьте обязательные курсы сотрудникам.</li>
-          <li>Проверьте dashboard и отчеты.</li>
-          <li>Откройте журнал аудита при проверке действий.</li>
-          <li>Используйте раздел импорта оргструктуры для загрузки данных из CSV.</li>
-        </ol>
-      </div>
+  </section>
+  {% endif %}
+
+  <section id="questions" class="service-section">
+    <div class="service-section__heading"><span class="service-eyebrow">Подсказки</span><h2>Частые вопросы</h2></div>
+    <div class="service-accordion" data-service-accordion>
+      <details><summary>Почему курс не отображается в моих назначениях?</summary><p>Курс должен быть опубликован и назначен вашей учётной записи. Обратитесь к ответственному за обучение.</p></details>
+      <details><summary>Можно ли продолжить начатую проверку?</summary><p>Да, пока время попытки не истекло и она не была завершена.</p></details>
+      <details><summary>Почему файл недоступен по прямой ссылке?</summary><p>Учебные материалы выдаются через защищённый маршрут после проверки авторизации и права доступа.</p></details>
+      <details><summary>Что делать при ошибке доступа?</summary><p>Повторно войдите в систему. Если проблема сохраняется, сообщите администратору адрес страницы и время возникновения ошибки.</p></details>
     </div>
-  </div>
-  <div class="col-lg-4">
-    <div class="card h-100">
-      <div class="card-body">
-        <h5>Инструкция для администратора</h5>
-        <ol class="mb-0">
-          <li>Проверяйте роли и доступы пользователей.</li>
-          <li>Используйте Django admin для справочников и контроля.</li>
-          <li>Следите за результатами импорта и журналом аудита.</li>
-          <li>Проверяйте выпуск отчётов и сбор статических файлов.</li>
-        </ol>
-      </div>
-    </div>
-  </div>
-</div>
+  </section>
+</section>
 {% endblock %}

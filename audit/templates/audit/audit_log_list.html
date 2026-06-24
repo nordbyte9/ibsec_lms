@@ -1,59 +1,110 @@
 {% extends 'base.html' %}
-{% block title %}Журнал аудита{% endblock %}
+{% load static %}
+
+{% block title %}Журнал аудита — IBSec LMS{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/service-pages.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h3>Журнал аудита</h3>
-</div>
+<section class="service-page">
+  <header class="service-hero">
+    <div>
+      <span class="service-eyebrow">Контроль действий</span>
+      <h1>Журнал аудита</h1>
+      <p>История значимых действий пользователей и системных операций. Используйте фильтры, чтобы быстро найти нужную запись.</p>
+    </div>
+    <div class="service-hero__meta" aria-label="Сводка журнала">
+      <span class="service-counter">{{ logs|length }}</span>
+      <span>записей в выборке</span>
+    </div>
+  </header>
 
-<form method="get" class="row g-2 mb-3">
-  <div class="col-md-4">
-    <select name="action" class="form-select">
-      <option value="">Все действия</option>
-      <option value="course_assigned" {% if selected_action == 'course_assigned' %}selected{% endif %}>Назначение курса</option>
-      <option value="quiz_submitted" {% if selected_action == 'quiz_submitted' %}selected{% endif %}>Сдача теста</option>
-      <option value="assignment_completed" {% if selected_action == 'assignment_completed' %}selected{% endif %}>Завершение назначения</option>
-      <option value="csv_export" {% if selected_action == 'csv_export' %}selected{% endif %}>Экспорт CSV</option>
-    </select>
-  </div>
-  <div class="col-md-4">
-    <select name="object_type" class="form-select">
-      <option value="">Все объекты</option>
-      <option value="CourseAssignment" {% if selected_object_type == 'CourseAssignment' %}selected{% endif %}>Назначение курса</option>
-      <option value="Submission" {% if selected_object_type == 'Submission' %}selected{% endif %}>Попытка теста</option>
-      <option value="Report" {% if selected_object_type == 'Report' %}selected{% endif %}>Отчет</option>
-    </select>
-  </div>
-  <div class="col-md-2">
-    <button class="btn btn-primary w-100">Фильтровать</button>
-  </div>
-</form>
+  <section class="service-panel service-panel--filters" aria-labelledby="audit-filters-title">
+    <div class="service-panel__heading">
+      <div>
+        <h2 id="audit-filters-title">Фильтры журнала</h2>
+        <p>Отбор применяется сразу после нажатия кнопки.</p>
+      </div>
+      {% if selected_action or selected_object_type %}
+      <a class="service-link" href="{% url 'audit:list' %}">Сбросить фильтры</a>
+      {% endif %}
+    </div>
 
-<div class="table-responsive">
-  <table class="table table-striped align-middle">
-    <thead>
-      <tr>
-        <th>Дата</th>
-        <th>Пользователь</th>
-        <th>Действие</th>
-        <th>Объект</th>
-        <th>Описание</th>
-        <th>IP</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for log in logs %}
-      <tr>
-        <td>{{ log.created_at }}</td>
-        <td>{{ log.user.get_full_name|default:log.user.username|default:"-" }}</td>
-        <td>{{ log.action }}</td>
-        <td>{{ log.object_type }}{% if log.object_id %} #{{ log.object_id }}{% endif %}</td>
-        <td>{{ log.description }}</td>
-        <td>{{ log.ip_address|default:"-" }}</td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="6">Записей пока нет.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
+    <form method="get" class="service-filter-grid">
+      <label class="service-field">
+        <span>Действие</span>
+        <select name="action">
+          <option value="">Все действия</option>
+          {% for value, label in action_choices %}<option value="{{ value }}" {% if selected_action == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+      </label>
+      <label class="service-field">
+        <span>Объект</span>
+        <select name="object_type">
+          <option value="">Все объекты</option>
+          {% for value, label in object_choices %}<option value="{{ value }}" {% if selected_object_type == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+      </label>
+      <button class="service-button service-button--primary" type="submit">Показать записи</button>
+    </form>
+  </section>
+
+  <section class="service-panel" aria-labelledby="audit-table-title">
+    <div class="service-panel__heading">
+      <div>
+        <h2 id="audit-table-title">Последние действия</h2>
+        <p>Записи расположены от новых к старым.</p>
+      </div>
+    </div>
+
+    {% if logs %}
+    <div class="service-table-wrap">
+      <table class="service-table">
+        <thead>
+          <tr>
+            <th>Дата и время</th>
+            <th>Пользователь</th>
+            <th>Действие</th>
+            <th>Объект</th>
+            <th>Описание</th>
+            <th>Сетевой адрес</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in logs %}
+          <tr>
+            <td><time datetime="{{ log.created_at|date:'c' }}">{{ log.created_at|date:"d.m.Y H:i" }}</time></td>
+            <td>
+              <div class="service-person">
+                <span class="service-person__avatar" aria-hidden="true">{{ log.user.first_name|default:log.user.username|default:"С"|first|upper }}</span>
+                <span>
+                  <strong>{{ log.user.get_full_name|default:log.user.username|default:"Система" }}</strong>
+                  {% if log.user %}<small>{{ log.user.profile.get_role_display|default:"Пользователь" }}</small>{% endif %}
+                </span>
+              </div>
+            </td>
+            <td><span class="service-badge service-badge--blue">{{ log.action_label }}</span></td>
+            <td>
+              <strong>{{ log.object_type_label }}</strong>
+              {% if log.object_id_label %}<small class="service-muted">{{ log.object_id_label }}</small>{% endif %}
+            </td>
+            <td class="service-table__description">{{ log.display_description }}</td>
+            <td><code class="service-code">{{ log.ip_address|default:"Не определён" }}</code></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="service-empty">
+      <span class="service-empty__icon" aria-hidden="true">✓</span>
+      <h3>Записей не найдено</h3>
+      <p>Измените параметры фильтра или дождитесь появления новых действий.</p>
+      {% if selected_action or selected_object_type %}<a class="service-button" href="{% url 'audit:list' %}">Показать весь журнал</a>{% endif %}
+    </div>
+    {% endif %}
+  </section>
+</section>
 {% endblock %}

@@ -1,0 +1,12 @@
+{% if messages %}
+  <div class="ibsec-messages" aria-live="polite">
+    {% for message in messages %}
+      <div class="ibsec-message {% if message.tags %}ibsec-message--{{ message.tags }}{% endif %}" role="status">
+        <span class="ibsec-message__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5h.01"/></svg>
+        </span>
+        <span>{{ message }}</span>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}

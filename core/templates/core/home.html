@@ -1,188 +1,246 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block title %}Главная{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/home-dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/public-home.css' %}">
+{% endblock %}
+
 {% block content %}
-{% if user.is_authenticated %}
-  <div class="home-hero card mb-4">
-    <div class="card-body home-hero__body">
-      <div class="home-hero__content">
-        <div class="home-kicker">Корпоративная LMS</div>
-        <h1 class="home-title">Обучение сотрудников по ИБ</h1>
-        <p class="home-subtitle">Изучайте курсы, проходите тестирование и отслеживайте прогресс.</p>
-        <div class="home-actions">
-          <a class="btn btn-primary btn-lg" href="/courses/">Перейти к курсам</a>
-          <a class="btn btn-outline-primary btn-lg" href="/reports/my/">Мой прогресс</a>
-        </div>
-      </div>
-      <div class="home-hero__panel">
-        <div class="home-panel__label">Сейчас в системе</div>
-        <div class="home-panel__stats">
-          <div class="home-panel__stat">
-            <span class="home-panel__stat-value">{{ available_courses_count }}</span>
-            <span class="home-panel__stat-label">Доступных курсов</span>
-          </div>
-          <div class="home-panel__stat">
-            <span class="home-panel__stat-value">{{ assigned_courses_count }}</span>
-            <span class="home-panel__stat-label">Назначений</span>
-          </div>
-          <div class="home-panel__stat">
-            <span class="home-panel__stat-value">{{ completed_tests_count }}</span>
-            <span class="home-panel__stat-label">Пройдено тестов</span>
-          </div>
-        </div>
-        <div class="home-panel__note">
-          {{ request.user.username }}, здесь собраны ключевые разделы для вашей роли.
-        </div>
-      </div>
+{% if request.user.is_authenticated %}
+<section class="home-page" aria-labelledby="home-title">
+  <header class="home-welcome">
+    <div>
+      <span class="home-eyebrow">Личный кабинет</span>
+      <h1 id="home-title">Добро пожаловать, {{ request.user.get_full_name|default:request.user.username }}!</h1>
+      <p>
+        Здесь собраны назначенные курсы, ближайшие сроки и результаты проверки знаний.
+      </p>
     </div>
-  </div>
+    <div class="home-welcome__actions">
+      <a class="btn btn-primary" href="{% url 'assignments:my' %}">Мои назначения</a>
+      <a class="btn btn-outline-primary" href="{% url 'courses:list' %}">Все курсы</a>
+    </div>
+  </header>
 
-  <div class="row g-3 mb-4">
-    <div class="col-md-3">
-      <div class="card home-metric-card h-100">
-        <div class="card-body">
-          <div class="home-metric__label">Доступные курсы</div>
-          <div class="home-metric__value">{{ available_courses_count }}</div>
-          <div class="home-metric__text">Каталог актуальных материалов и программ ИБ.</div>
-        </div>
+  <section class="home-summary" aria-label="Основные показатели обучения">
+    <article class="home-summary-card">
+      <div class="home-summary-card__icon home-summary-card__icon--blue" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9M12 7v5l3 2"/></svg>
       </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card home-metric-card h-100">
-        <div class="card-body">
-          <div class="home-metric__label">Назначенные курсы</div>
-          <div class="home-metric__value">{{ assigned_courses_count }}</div>
-          <div class="home-metric__text">Личный план обязательного обучения и сроки прохождения.</div>
-        </div>
+      <div>
+        <span>Общий прогресс</span>
+        <strong>{{ completion_percent }}%</strong>
+        <small>Завершено {{ completed_courses_count }} из {{ assigned_courses_count }}</small>
       </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card home-metric-card h-100">
-        <div class="card-body">
-          <div class="home-metric__label">Пройдено тестов</div>
-          <div class="home-metric__value">{{ completed_tests_count }}</div>
-          <div class="home-metric__text">История попыток и результаты проверки знаний.</div>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card home-metric-card h-100">
-        <div class="card-body">
-          <div class="home-metric__label">Отчёты и контроль</div>
-          <div class="home-metric__value">{% if can_view_reports %}Доступны{% else %}По роли{% endif %}</div>
-          <div class="home-metric__text">Сводка по обучению, статусам и аудиту действий.</div>
-        </div>
-      </div>
-    </div>
-  </div>
+    </article>
 
-  <div class="row g-3 mb-4">
-    <div class="col-lg-3 col-md-6">
-      <div class="card home-feature-card h-100">
-        <div class="card-body">
-          <div class="home-feature__title">Курсы и материалы</div>
-          <div class="home-feature__text">Единый каталог учебных программ, уроков и обязательных тем.</div>
+    <article class="home-summary-card">
+      <div class="home-summary-card__icon home-summary-card__icon--green" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M5 12.5 9.5 17 19 7.5"/><circle cx="12" cy="12" r="9"/></svg>
+      </div>
+      <div>
+        <span>Завершено курсов</span>
+        <strong>{{ completed_courses_count }}</strong>
+        <small>По всем назначениям</small>
+      </div>
+    </article>
+
+    <article class="home-summary-card">
+      <div class="home-summary-card__icon home-summary-card__icon--violet" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-8M22 19H2"/></svg>
+      </div>
+      <div>
+        <span>Средний результат</span>
+        <strong>{{ average_result }}%</strong>
+        <small>По завершённым тестам</small>
+      </div>
+    </article>
+
+    <article class="home-summary-card">
+      <div class="home-summary-card__icon home-summary-card__icon--orange" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M12 7v5l3 2"/><circle cx="12" cy="12" r="9"/></svg>
+      </div>
+      <div>
+        <span>Просрочено</span>
+        <strong>{{ overdue_courses_count }}</strong>
+        <small>Требуют внимания</small>
+      </div>
+    </article>
+  </section>
+
+  <div class="home-grid">
+    <section class="home-panel home-panel--courses" aria-labelledby="my-courses-title">
+      <div class="home-panel__header">
+        <div>
+          <span class="home-panel__kicker">Продолжить обучение</span>
+          <h2 id="my-courses-title">Мои курсы</h2>
+        </div>
+        <a href="{% url 'assignments:my' %}">Смотреть все</a>
+      </div>
+
+      <div class="home-course-list">
+        {% for assignment in active_assignments %}
+        <article class="home-course-row">
+          <a class="home-course-row__cover" href="{% url 'courses:detail' assignment.course.pk %}" aria-label="Открыть курс {{ assignment.course.title }}">
+            <span aria-hidden="true">
+              <svg viewBox="0 0 48 48"><path d="M24 5 39 10v11c0 10-6.3 17-15 22-8.7-5-15-12-15-22V10l15-5Z"/><path d="m17 24 5 5 10-12"/></svg>
+            </span>
+          </a>
+
+          <div class="home-course-row__body">
+            <div class="home-course-row__meta">
+              <span class="status-chip status-chip--{{ assignment.status }}">{{ assignment.get_status_display }}</span>
+              {% if assignment.course.is_mandatory %}<span>Обязательный курс</span>{% endif %}
+            </div>
+            <h3><a href="{% url 'courses:detail' assignment.course.pk %}">{{ assignment.course.title }}</a></h3>
+            <div class="home-course-row__progress" aria-label="Результат по курсу {{ assignment.display_percent }} процентов">
+              <span style="width: {{ assignment.display_percent }}%"></span>
+            </div>
+            <div class="home-course-row__footer">
+              <span>{{ assignment.display_percent }}%</span>
+              <span>Срок: {{ assignment.due_date|date:"d.m.Y" }}</span>
+            </div>
+          </div>
+
+          <a class="home-course-row__open" href="{% url 'courses:detail' assignment.course.pk %}" aria-label="Перейти к курсу {{ assignment.course.title }}">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>
+          </a>
+        </article>
+        {% empty %}
+        <div class="home-empty-state">
+          <span class="home-empty-state__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5v-16ZM4 5.5V21M8 7h8M8 11h8"/></svg>
+          </span>
+          <h3>Активных назначений пока нет</h3>
+          <p>Откройте каталог и посмотрите доступные учебные материалы.</p>
+          <a class="btn btn-primary" href="{% url 'courses:list' %}">Открыть каталог</a>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <aside class="home-panel home-panel--deadlines" aria-labelledby="deadlines-title">
+      <div class="home-panel__header">
+        <div>
+          <span class="home-panel__kicker">Контроль сроков</span>
+          <h2 id="deadlines-title">Ближайшие сроки</h2>
         </div>
       </div>
-    </div>
-    <div class="col-lg-3 col-md-6">
-      <div class="card home-feature-card h-100">
-        <div class="card-body">
-          <div class="home-feature__title">Тестирование</div>
-          <div class="home-feature__text">Проверка знаний с ограничением попыток и контрольным порогом.</div>
+
+      <div class="home-deadline-list">
+        {% for assignment in upcoming_assignments %}
+        <article class="home-deadline-item {% if assignment.status == 'overdue' %}is-overdue{% endif %}">
+          <div class="home-deadline-item__date">
+            <strong>{{ assignment.due_date|date:"d" }}</strong>
+            <span>{{ assignment.due_date|date:"M" }}</span>
+          </div>
+          <div>
+            <h3>{{ assignment.course.title }}</h3>
+            <p>{{ assignment.get_status_display }}</p>
+          </div>
+        </article>
+        {% empty %}
+        <div class="home-empty-compact">Нет ближайших сроков.</div>
+        {% endfor %}
+      </div>
+    </aside>
+
+    <section class="home-panel home-panel--results" aria-labelledby="results-title">
+      <div class="home-panel__header">
+        <div>
+          <span class="home-panel__kicker">Проверка знаний</span>
+          <h2 id="results-title">Последние результаты</h2>
+        </div>
+        <a href="{% url 'quizzes:attempt_history' %}">Вся история</a>
+      </div>
+
+      <div class="home-result-list">
+        {% for submission in recent_submissions %}
+        <article class="home-result-row">
+          <div class="home-result-row__main">
+            <span class="home-result-row__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M8 4h8M9 2h6v4H9zM6 4H4v17h16V4h-2M8 11h8M8 15h5"/></svg>
+            </span>
+            <div>
+              <h3>{{ submission.quiz.title }}</h3>
+              <p>{{ submission.quiz.course.title }} · {{ submission.taken_at|date:"d.m.Y H:i" }}</p>
+            </div>
+          </div>
+          <div class="home-result-row__score {% if submission.passed %}is-passed{% else %}is-failed{% endif %}">
+            <strong>{{ submission.percent|floatformat:0 }}%</strong>
+            <span>{% if submission.passed %}Пройдено{% else %}Не пройдено{% endif %}</span>
+          </div>
+        </article>
+        {% empty %}
+        <div class="home-empty-compact">Результатов тестирования пока нет.</div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="home-panel home-panel--actions" aria-labelledby="actions-title">
+      <div class="home-panel__header">
+        <div>
+          <span class="home-panel__kicker">Быстрый доступ</span>
+          <h2 id="actions-title">Полезные разделы</h2>
         </div>
       </div>
-    </div>
-    <div class="col-lg-3 col-md-6">
-      <div class="card home-feature-card h-100">
-        <div class="card-body">
-          <div class="home-feature__title">Контроль прохождения</div>
-          <div class="home-feature__text">Назначения, сроки, статусы и завершение обучения по факту сдачи.</div>
+
+      <div class="home-action-grid">
+        <a class="home-action-card" href="{% url 'reports:my_progress' %}">
+          <span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-8M22 19H2"/></svg></span>
+          <strong>Мой прогресс</strong>
+          <small>Результаты и история обучения</small>
+        </a>
+        <a class="home-action-card" href="{% url 'quizzes:attempt_history' %}">
+          <span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9M12 7v5l3 2M16 3h5v5"/></svg></span>
+          <strong>История тестов</strong>
+          <small>Все попытки и проценты</small>
+        </a>
+      </div>
+    </section>
+
+    {% if can_view_reports or can_manage_courses or can_manage_assignments %}
+    <section class="home-panel home-panel--management" aria-labelledby="management-title">
+      <div class="home-panel__header">
+        <div>
+          <span class="home-panel__kicker">Доступ по роли</span>
+          <h2 id="management-title">Управление обучением</h2>
         </div>
       </div>
-    </div>
-    <div class="col-lg-3 col-md-6">
-      <div class="card home-feature-card h-100">
-        <div class="card-body">
-          <div class="home-feature__title">Отчёты и аналитика</div>
-          <div class="home-feature__text">Панель ИБ, отчёты по сотрудникам, подразделениям и курсам.</div>
-        </div>
+      <div class="home-management-links">
+        {% if can_view_reports %}<a href="{% url 'reports:dashboard' %}">Открыть отчёты</a>{% endif %}
+        {% if can_manage_assignments %}<a href="{% url 'assignments:list' %}">Управлять назначениями</a>{% endif %}
+        {% if can_manage_courses %}<a href="{% url 'courses:create' %}">Создать курс</a>{% endif %}
       </div>
-    </div>
+    </section>
+    {% endif %}
   </div>
+</section>
 {% else %}
-  <div class="home-hero card mb-4">
-    <div class="card-body home-hero__body home-hero__body--guest">
-      <div class="home-hero__content">
-        <div class="home-kicker">Корпоративная LMS</div>
-        <h1 class="home-title">Обучение сотрудников по ИБ</h1>
-        <p class="home-subtitle">Изучайте курсы, проходите тестирование и отслеживайте прогресс.</p>
-        <div class="home-actions">
-          <a class="btn btn-primary btn-lg" href="/accounts/login/">Войти</a>
-          <a class="btn btn-outline-primary btn-lg" href="/courses/">Посмотреть курсы</a>
-        </div>
-      </div>
+<section class="public-home public-home--compact" aria-labelledby="public-home-title">
+  <div class="public-home__copy">
+    <span class="public-home__eyebrow">Корпоративная система обучения</span>
+    <h1 id="public-home-title">Корпоративное обучение по информационной безопасности</h1>
+    <p>Единое пространство для обязательных курсов, проверки знаний, контроля сроков и подтверждения результатов обучения.</p>
+    <div class="public-home__actions">
+      <a class="btn btn-primary public-home__button" href="{% url 'login' %}">Войти в систему</a>
+      <span>Доступ предоставляется по корпоративной учётной записи.</span>
     </div>
+    <ul class="public-home__benefits" aria-label="Возможности системы">
+      <li><strong>Курсы</strong><span>Назначенные программы и учебные материалы</span></li>
+      <li><strong>Проверка знаний</strong><span>Контрольные вопросы и история результатов</span></li>
+      <li><strong>Отчётность</strong><span>Сроки, прогресс и подтверждающие документы</span></li>
+    </ul>
   </div>
-
-  <div class="row g-3 mb-4 home-guest-features">
-    <div class="col-lg-3 col-md-6">
-      <div class="card home-feature-card h-100">
-        <div class="card-body">
-          <div class="home-feature__title">Обязательное обучение</div>
-          <div class="home-feature__text">Автоматическое назначение курсов сотрудникам по правилам компании.</div>
-        </div>
-      </div>
+  <div class="public-home__visual" aria-hidden="true">
+    <div class="public-home__shield">
+      <svg viewBox="0 0 120 140"><path d="M60 8 108 24v38c0 32-19 56-48 70C31 118 12 94 12 62V24L60 8Z"/><path d="m37 69 16 16 32-38"/></svg>
     </div>
-    <div class="col-lg-3 col-md-6">
-      <div class="card home-feature-card h-100">
-        <div class="card-body">
-          <div class="home-feature__title">Тестирование знаний</div>
-          <div class="home-feature__text">Проверка знаний с порогом прохождения и ограничением попыток.</div>
-        </div>
-      </div>
-    </div>
-    <div class="col-lg-3 col-md-6">
-      <div class="card home-feature-card h-100">
-        <div class="card-body">
-          <div class="home-feature__title">Отчётность для ИБ</div>
-          <div class="home-feature__text">Контроль прохождения, просрочек и результатов по подразделениям.</div>
-        </div>
-      </div>
-    </div>
-    <div class="col-lg-3 col-md-6">
-      <div class="card home-feature-card h-100">
-        <div class="card-body">
-          <div class="home-feature__title">Интеграция с оргструктурой</div>
-          <div class="home-feature__text">Импорт сотрудников, подразделений и должностей из CSV.</div>
-        </div>
-      </div>
-    </div>
+    <div class="public-home__status"><span></span><strong>Защищённое обучение</strong><small>Доступ только авторизованным пользователям</small></div>
   </div>
-
-  <div class="card mb-4 home-audience-card">
-    <div class="card-body">
-      <div class="section-title mb-3">Для кого система</div>
-      <div class="row g-3">
-        <div class="col-md-4">
-          <div class="home-audience-item">
-            <div class="home-audience-item__title">Сотрудники</div>
-            <div class="home-audience-item__text">Проходят назначенные курсы и тесты в личном кабинете.</div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="home-audience-item">
-            <div class="home-audience-item__title">Ответственный за ИБ</div>
-            <div class="home-audience-item__text">Назначает обучение и контролирует прохождение по отчетам.</div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="home-audience-item">
-            <div class="home-audience-item__title">Администратор</div>
-            <div class="home-audience-item__text">Управляет пользователями, курсами, импортом данных и настройками.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+</section>
 {% endif %}
 {% endblock %}

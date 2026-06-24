@@ -1,43 +1,279 @@
 {% extends 'base.html' %}
+{% load static course_design %}
+
 {% block title %}{{ course.title }}{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/course-detail.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <div>
-    <h3 class="mb-0">{{ course.title }}</h3>
-    <div class="text-muted">Автор: {{ course.author.get_full_name|default:course.author.username }}</div>
+{% course_detail_summary course as summary %}
+
+<section class="course-detail-page" data-course-detail>
+  <header class="course-hero ibsec-card">
+    <div class="course-hero-image">
+      <img src="{% static summary.image %}" alt="Иллюстрация к курсу «{{ course.title }}»">
+      <span class="course-hero-overlay" aria-hidden="true"></span>
+
+      <div class="course-hero-badges">
+        <span class="course-category">{{ summary.category }}</span>
+        {% if course.is_mandatory %}
+          <span class="course-important">Обязательный курс</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="course-hero-content">
+      <a class="course-back-link" href="{% url 'courses:list' %}">
+        <span aria-hidden="true">←</span> Вернуться в каталог
+      </a>
+
+      <h1>{{ course.title }}</h1>
+      <p class="course-lead">
+        {{ course.description|default:"Описание курса будет добавлено позже." }}
+      </p>
+
+      <div class="course-hero-actions">
+        {% if summary.quiz_count %}
+          <a class="btn btn-primary" href="{% url 'quizzes:course_quiz_entry' course.pk %}">
+            Перейти к проверке знаний
+          </a>
+        {% endif %}
+
+        {% if can_manage_courses %}
+          <a class="btn btn-outline-primary" href="{% url 'courses:lesson_create' course.pk %}">
+            Добавить урок
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </header>
+
+  <section class="course-summary-grid" aria-label="Основные сведения о курсе">
+    <article class="course-summary-card ibsec-card">
+      <span class="course-summary-icon" aria-hidden="true">▤</span>
+      <div>
+        <span>Учебных материалов</span>
+        <strong>{{ summary.lesson_count }}</strong>
+      </div>
+    </article>
+
+    <article class="course-summary-card ibsec-card">
+      <span class="course-summary-icon" aria-hidden="true">◷</span>
+      <div>
+        <span>Срок актуальности</span>
+        <strong>{% if course.validity_days %}{{ course.validity_days }} дней{% else %}Не ограничен{% endif %}</strong>
+      </div>
+    </article>
+
+    <article class="course-summary-card ibsec-card">
+      <span class="course-summary-icon" aria-hidden="true">✓</span>
+      <div>
+        <span>Статус обучения</span>
+        <strong class="course-state course-state--{{ summary.status_class }}">{{ summary.status_label }}</strong>
+      </div>
+    </article>
+
+    <article class="course-summary-card ibsec-card">
+      <span class="course-summary-icon" aria-hidden="true">%</span>
+      <div>
+        <span>Последний результат</span>
+        <strong>
+          {% if summary.latest_percent is not None %}
+            {{ summary.latest_percent }}%
+          {% else %}
+            Нет результата
+          {% endif %}
+        </strong>
+      </div>
+    </article>
+  </section>
+
+  <div class="course-detail-layout">
+    <main class="course-materials">
+      <section class="course-section-heading">
+        <div>
+          <p class="course-section-kicker">Содержание курса</p>
+          <h2>Уроки и материалы</h2>
+          <p>Изучайте материалы последовательно и переходите к проверке знаний после завершения курса.</p>
+        </div>
+
+        {% if lessons %}
+          <button class="btn btn-outline-primary course-toggle-all" type="button" data-lessons-toggle>
+            Развернуть все
+          </button>
+        {% endif %}
+      </section>
+
+      <div class="course-lessons" data-lessons-list>
+        {% for lesson in lessons %}
+          <details class="course-lesson ibsec-card" {% if forloop.first %}open{% endif %}>
+            <summary>
+              <span class="course-lesson-number">{{ forloop.counter }}</span>
+              <span class="course-lesson-title">
+                <strong>{{ lesson.title }}</strong>
+                <small>{{ lesson.type|lesson_type_label }}</small>
+              </span>
+              <span class="course-lesson-marker" aria-hidden="true">⌄</span>
+            </summary>
+
+            <div class="course-lesson-content">
+              {% if lesson.type == 'text' %}
+                {% if lesson.content %}
+                  <div class="course-reading-text">{{ lesson.content|linebreaks }}</div>
+                {% else %}
+                  <p class="course-muted">Текст материала пока не добавлен.</p>
+                {% endif %}
+              {% endif %}
+
+              {% if lesson.type == 'link' %}
+                {% if lesson.content %}
+                  <div class="course-link-card">
+                    <div>
+                      <span>Дополнительный источник</span>
+                      <strong>{{ lesson.content }}</strong>
+                    </div>
+                    <a class="btn btn-outline-primary" href="{{ lesson.content }}" target="_blank" rel="noopener noreferrer">
+                      Открыть материал
+                    </a>
+                  </div>
+                {% else %}
+                  <p class="course-muted">Ссылка на материал пока не добавлена.</p>
+                {% endif %}
+              {% endif %}
+
+              {% if lesson.file and lesson.file_active %}
+                <div class="course-file-card">
+                  <span class="course-file-icon" aria-hidden="true">▣</span>
+                  <div class="course-file-details">
+                    <span>{{ lesson.download_filename|file_kind }}</span>
+                    <strong>{{ lesson.download_filename }}</strong>
+                    <small>
+                      {% if lesson.file_size %}{{ lesson.file_size|filesizeformat }}{% endif %}
+                      {% if lesson.file_uploaded_at %}
+                        {% if lesson.file_size %} · {% endif %}загружен {{ lesson.file_uploaded_at|date:"d.m.Y" }}
+                      {% endif %}
+                    </small>
+                  </div>
+
+                  {% if can_download_materials %}
+                    <a class="btn btn-primary" href="{% url 'courses:lesson_download' lesson.pk %}">
+                      Скачать файл
+                    </a>
+                  {% else %}
+                    <span class="course-file-restricted">Доступно после назначения курса</span>
+                  {% endif %}
+                </div>
+              {% elif lesson.type == 'file' %}
+                <p class="course-muted">Файл для этого урока пока не добавлен.</p>
+              {% endif %}
+            </div>
+          </details>
+        {% empty %}
+          <div class="course-empty ibsec-card">
+            <span class="course-empty-icon" aria-hidden="true">□</span>
+            <h3>Материалы пока не добавлены</h3>
+            <p>После публикации уроков они появятся в этом разделе.</p>
+            {% if can_manage_courses %}
+              <a class="btn btn-primary" href="{% url 'courses:lesson_create' course.pk %}">Добавить первый урок</a>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+
+      {% if summary.quiz_count %}
+        <section class="course-test-banner ibsec-card">
+          <div class="course-test-symbol" aria-hidden="true">✓</div>
+          <div>
+            <p class="course-section-kicker">Завершение обучения</p>
+            <h2>Проверьте полученные знания</h2>
+            <p>После изучения материалов перейдите к тестированию. Время и число попыток контролируются системой.</p>
+          </div>
+          <a class="btn btn-primary" href="{% url 'quizzes:course_quiz_entry' course.pk %}">Открыть тест</a>
+        </section>
+      {% endif %}
+    </main>
+
+    <aside class="course-sidebar">
+      <section class="course-side-card ibsec-card">
+        <h2>О курсе</h2>
+        <dl>
+          <div>
+            <dt>Программа</dt>
+            <dd>{% if course.training_program %}{{ course.training_program.title }}{% else %}Не указана{% endif %}</dd>
+          </div>
+          <div>
+            <dt>Категория</dt>
+            <dd>{{ summary.category }}</dd>
+          </div>
+          <div>
+            <dt>Автор</dt>
+            <dd>
+              {% if course.author %}
+                {{ course.author.get_full_name|default:course.author.username }}
+              {% else %}
+                Не указан
+              {% endif %}
+            </dd>
+          </div>
+          <div>
+            <dt>Файлов</dt>
+            <dd>{{ summary.file_count }}</dd>
+          </div>
+          <div>
+            <dt>Внешних материалов</dt>
+            <dd>{{ summary.link_count }}</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="course-side-card ibsec-card">
+        <h2>Для кого предназначен</h2>
+
+        <div class="course-audience-group">
+          <h3>Подразделения</h3>
+          <div class="course-chip-list">
+            {% for department in course.target_departments.all %}
+              <span>{{ department }}</span>
+            {% empty %}
+              <span>Для всех подразделений</span>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="course-audience-group">
+          <h3>Должности</h3>
+          <div class="course-chip-list">
+            {% for position in course.target_positions.all %}
+              <span>{{ position }}</span>
+            {% empty %}
+              <span>Для всех должностей</span>
+            {% endfor %}
+          </div>
+        </div>
+      </section>
+
+      {% if summary.assignment %}
+        <section class="course-side-card course-assignment-card ibsec-card">
+          <h2>Моё назначение</h2>
+          <dl>
+            <div>
+              <dt>Назначено</dt>
+              <dd>{{ summary.assignment.assigned_at|date:"d.m.Y" }}</dd>
+            </div>
+            <div>
+              <dt>Срок прохождения</dt>
+              <dd>{% if summary.assignment.due_date %}{{ summary.assignment.due_date|date:"d.m.Y" }}{% else %}Не указан{% endif %}</dd>
+            </div>
+          </dl>
+        </section>
+      {% endif %}
+    </aside>
   </div>
-  {% if request.user.profile.role == 'security_officer' or request.user.profile.role == 'admin' %}
-  <a class="btn btn-sm btn-outline-secondary" href="{% url 'courses:lesson_create' course.pk %}">Добавить урок</a>
-  {% endif %}
-</div>
+</section>
+{% endblock %}
 
-<div class="card mb-3">
-  <div class="card-body">
-    <p class="mb-2">{{ course.description }}</p>
-    <p class="mb-2"><b>Программа:</b> {% if course.training_program %}{{ course.training_program }}{% else %}-{% endif %}</p>
-    <p class="mb-2"><b>Категория:</b> {% if course.training_program %}{{ course.training_program.category }}{% else %}-{% endif %}</p>
-    <p class="mb-2"><b>Обязательный:</b> {% if course.is_mandatory %}Да{% else %}Нет{% endif %}</p>
-    <p class="mb-2"><b>Срок актуальности:</b> {{ course.validity_days|default:"-" }}</p>
-    <p class="mb-2"><b>Целевые подразделения:</b> {% for department in course.target_departments.all %}{{ department }}{% if not forloop.last %}, {% endif %}{% empty %}-{% endfor %}</p>
-    <p class="mb-0"><b>Целевые должности:</b> {% for position in course.target_positions.all %}{{ position }}{% if not forloop.last %}, {% endif %}{% empty %}-{% endfor %}</p>
-  </div>
-</div>
-
-<h5>Уроки</h5>
-<ol class="list-group list-group-numbered mb-4">
-{% for l in lessons %}
-  <li class="list-group-item">
-    <div class="fw-bold">{{ l.title }}</div>
-    {% if l.type == 'text' %}<div>{{ l.content|linebreaks }}</div>{% endif %}
-    {% if l.type == 'link' %}<div><a href="{{ l.content }}" target="_blank">{{ l.content }}</a></div>{% endif %}
-    {% if l.file %}<div><a href="{{ l.file.url }}">Скачать файл</a></div>{% endif %}
-  </li>
-{% empty %}
-  <li class="list-group-item">В этом курсе пока нет уроков.</li>
-{% endfor %}
-</ol>
-
-{% if course.quizzes.all %}
-  <a class="btn btn-success" href="/quizzes/course/{{ course.pk }}/">Пройти тест</a>
-{% endif %}
+{% block extra_js %}
+  <script src="{% static 'js/course-detail.js' %}"></script>
 {% endblock %}

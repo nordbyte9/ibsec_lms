@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{% if category %}Редактирование категории{% else %}Новая категория{% endif %} — IBSec LMS{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/knowledge-base.css' %}">{% endblock %}
+{% block content %}
+<section class="knowledge-simple-editor">
+  <header><p class="knowledge-eyebrow">База знаний</p><h1>{% if category %}Редактирование категории{% else %}Новая категория{% endif %}</h1></header>
+  <form class="knowledge-form-card" method="post" novalidate>{% csrf_token %}
+    {% include "knowledge/partials/form_field.html" with field=form.name %}
+    {% include "knowledge/partials/form_field.html" with field=form.slug %}
+    {% include "knowledge/partials/form_field.html" with field=form.description %}
+    {% include "knowledge/partials/form_field.html" with field=form.order %}
+    <div class="knowledge-editor-actions"><a class="ibsec-button ibsec-button--secondary" href="{% url 'knowledge:manage_categories' %}">Отмена</a><button class="ibsec-button ibsec-button--primary" type="submit">Сохранить</button></div>
+  </form>
+</section>
+{% endblock %}

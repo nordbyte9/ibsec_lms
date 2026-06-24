@@ -23,7 +23,10 @@ fi
 
 if is_true "${COLLECT_STATIC:-true}"; then
     echo "Collecting static files..."
-    python manage.py collectstatic --noinput
+    python manage.py collectstatic --clear --noinput
+
+    echo "Verifying required static files..."
+    python manage.py findstatic css/design-system.css css/layout.css css/home-dashboard.css css/management-forms.css --verbosity 0 >/dev/null
 else
     echo "Static collection is disabled by COLLECT_STATIC=${COLLECT_STATIC:-}."
 fi

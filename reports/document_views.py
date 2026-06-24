@@ -10,6 +10,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
 from accounts.models import Department
+from accounts.permissions import Permission, has_permission
 from assignments.models import CourseAssignment
 from audit.services import log_action
 from courses.models import Course
@@ -24,15 +25,8 @@ from .document_exports import (
 )
 
 
-def _role(user) -> str | None:
-    profile = getattr(user, "profile", None)
-    return getattr(profile, "role", None)
-
-
 def _can_manage_reports(user) -> bool:
-    return user.is_authenticated and (
-        user.is_superuser or _role(user) in {"security_officer", "admin"}
-    )
+    return has_permission(user, Permission.EXPORT_REPORTS)
 
 
 def _safe_int(value: str | None) -> int | None:
