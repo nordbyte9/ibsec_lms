@@ -5,6 +5,7 @@
 
 {% block extra_css %}
   <link rel="stylesheet" href="{% static 'css/home-dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/public-home.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -219,10 +220,10 @@
   </div>
 </section>
 {% else %}
-<section class="public-home" aria-labelledby="public-home-title">
+<section class="public-home public-home--compact" aria-labelledby="public-home-title">
   <div class="public-home__copy">
     <span class="public-home__eyebrow">Корпоративная система обучения</span>
-    <h1 id="public-home-title">Обучение сотрудников правилам информационной безопасности</h1>
+    <h1 id="public-home-title">Корпоративное обучение по информационной безопасности</h1>
     <p>Единое пространство для обязательных курсов, проверки знаний, контроля сроков и подтверждения результатов обучения.</p>
     <div class="public-home__actions">
       <a class="btn btn-primary public-home__button" href="{% url 'login' %}">Войти в систему</a>
