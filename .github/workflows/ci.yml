@@ -63,6 +63,9 @@ jobs:
       - name: Verify migrations are applied
         run: python manage.py migrate --check
 
+      - name: Collect static files
+        run: python manage.py collectstatic --noinput --clear
+
       - name: Run tests
         run: python manage.py test --verbosity 2
 
@@ -124,6 +127,9 @@ jobs:
 
       - name: Verify PostgreSQL migrations
         run: python manage.py migrate --check
+
+      - name: Collect static files
+        run: python manage.py collectstatic --noinput --clear
 
       - name: Run tests against PostgreSQL
         run: python manage.py test --verbosity 2

@@ -2,7 +2,7 @@ from datetime import date
 
 from django.test import TestCase
 from django.urls import reverse
-
+from django.contrib.staticfiles.storage import staticfiles_storage
 from assignments.models import CourseAssignment
 from courses.models import Course, Lesson, SecurityCategory, TrainingProgram
 from quizzes.models import Option, Question, Quiz, Submission
@@ -140,10 +140,11 @@ class CourseDetailDesignTests(TestCase):
         self.client.force_login(self.employee)
 
         response = self.client.get(
-            reverse('courses:detail', args=[self.course.pk])
+            reverse("courses:detail", args=[self.course.pk])
         )
 
-        self.assertContains(
-            response,
-            'img/courses/osnovy-informatsionnoy-bezopasnosti.webp',
+        expected_url = staticfiles_storage.url(
+            "img/courses/osnovy-informatsionnoy-bezopasnosti.webp"
         )
+
+        self.assertContains(response, expected_url)
