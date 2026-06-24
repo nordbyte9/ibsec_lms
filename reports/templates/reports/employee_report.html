@@ -1,19 +1,15 @@
 {% extends 'base.html' %}
 
-{% block title %}Отчет по сотрудникам{% endblock %}
+{% block title %}Отчёт по сотрудникам{% endblock %}
 
 {% block content %}
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-    <h1 class="h3 mb-0">Отчет по сотрудникам</h1>
+    <h1 class="h3 mb-0">Отчёт по сотрудникам</h1>
     <div class="btn-group" role="group" aria-label="Экспорт отчета">
         <a class="btn btn-outline-secondary"
-           href="{% url 'reports:employee_export_csv' %}?department={{ selected_department }}&course={{ selected_course }}&status={{ selected_status }}">
-            CSV
-        </a>
+           href="{% url 'reports:employee_export_csv' %}?department={{ selected_department }}&course={{ selected_course }}&status={{ selected_status }}">Скачать CSV</a>
         <a class="btn btn-success"
-           href="{% url 'reports:training_registry_xlsx' %}?department={{ selected_department }}&course={{ selected_course }}&status={{ selected_status }}">
-            XLSX-реестр
-        </a>
+           href="{% url 'reports:training_registry_xlsx' %}?department={{ selected_department }}&course={{ selected_course }}&status={{ selected_status }}">Скачать реестр XLSX</a>
     </div>
 </div>
 
@@ -52,7 +48,7 @@
             </select>
         </div>
         <div class="col-md-1 d-grid">
-            <button class="btn btn-primary" type="submit">OK</button>
+            <button class="btn btn-primary" type="submit">Применить</button>
         </div>
     </div>
 </form>

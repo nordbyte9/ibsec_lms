@@ -8,7 +8,7 @@
       <div class="card-body">
         <p class="mb-2"><b>Пользователь:</b> {{ request.user.get_full_name|default:request.user.username }}</p>
         <p class="mb-2"><b>Роль:</b> {{ profile_obj.get_role_display }}</p>
-        <p class="mb-2"><b>E-mail:</b> {{ request.user.email }}</p>
+        <p class="mb-2"><b>Электронная почта:</b> {{ request.user.email }}</p>
         <p class="mb-2"><b>Подразделение:</b> {{ profile_obj.department|default:"-" }}</p>
         <p class="mb-0"><b>Должность:</b> {{ profile_obj.position|default:"-" }}</p>
       </div>

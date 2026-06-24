@@ -50,9 +50,7 @@
                     <td>{{ assignment.get_status_display }}</td>
                     <td class="text-end">
                         {% if assignment.status == 'completed' %}
-                            <a class="btn btn-sm btn-success" href="{% url 'reports:assignment_certificate_docx' assignment.pk %}">
-                                DOCX
-                            </a>
+                            <a class="btn btn-sm btn-success" href="{% url 'reports:assignment_certificate_docx' assignment.pk %}">Скачать сертификат</a>
                         {% else %}
                             <span class="text-muted">—</span>
                         {% endif %}

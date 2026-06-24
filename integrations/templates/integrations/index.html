@@ -13,12 +13,12 @@
     <h5>Формат CSV</h5>
     <p>Импорт выполняется административной командой:</p>
     <pre class="bg-light p-3 rounded">python manage.py import_org_csv path/to/org_structure.csv</pre>
-    <p class="mb-2">Обязательные заголовки:</p>
+    <p class="mb-2">Технические названия столбцов CSV:</p>
     <pre class="bg-light p-3 rounded mb-3">username,email,first_name,last_name,department,position,role</pre>
     <ul class="mb-0">
       <li>существующие пользователи обновляются по имени пользователя;</li>
       <li>подразделения и должности создаются при отсутствии;</li>
-      <li>поддерживаются роли <code>employee</code>, <code>security_officer</code> и <code>admin</code>;</li>
+      <li>поддерживаются роли: «Сотрудник» (<code>employee</code>), «Ответственный за ИБ» (<code>security_officer</code>) и «Администратор» (<code>admin</code>);</li>
       <li>результат операции сохраняется в журнале импорта.</li>
     </ul>
   </div>

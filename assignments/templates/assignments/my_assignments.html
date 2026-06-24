@@ -26,9 +26,7 @@
                             Открыть курс
                         </a>
                         {% if assignment.status == 'completed' %}
-                            <a class="btn btn-sm btn-success" href="{% url 'reports:assignment_certificate_docx' assignment.pk %}">
-                                Сертификат DOCX
-                            </a>
+                            <a class="btn btn-sm btn-success" href="{% url 'reports:assignment_certificate_docx' assignment.pk %}">Скачать сертификат</a>
                         {% endif %}
                     </td>
                 </tr>
