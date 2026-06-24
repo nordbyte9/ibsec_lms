@@ -1,67 +1,9 @@
-{% extends 'base.html' %}
-{% block title %}Отчёт по курсам{% endblock %}
-
-{% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h3>Отчёт по курсам</h3>
-  <a class="btn btn-outline-primary" href="{% url 'reports:course_export_csv' %}?department={{ selected_department }}&course={{ selected_course }}&status={{ selected_status }}">Скачать CSV</a>
-</div>
-
-<form method="get" class="row g-2 mb-4">
-  <div class="col-md-4">
-    <select name="department" class="form-select">
-      <option value="">Все подразделения</option>
-      {% for department in departments %}
-      <option value="{{ department.id }}" {% if selected_department == department.id|stringformat:'s' %}selected{% endif %}>{{ department.name }}</option>
-      {% endfor %}
-    </select>
-  </div>
-  <div class="col-md-4">
-    <select name="course" class="form-select">
-      <option value="">Все курсы</option>
-      {% for course in courses %}
-      <option value="{{ course.id }}" {% if selected_course == course.id|stringformat:'s' %}selected{% endif %}>{{ course.title }}</option>
-      {% endfor %}
-    </select>
-  </div>
-  <div class="col-md-3">
-    <select name="status" class="form-select">
-      <option value="">Все статусы</option>
-      <option value="assigned" {% if selected_status == 'assigned' %}selected{% endif %}>Назначено</option>
-      <option value="in_progress" {% if selected_status == 'in_progress' %}selected{% endif %}>В процессе</option>
-      <option value="completed" {% if selected_status == 'completed' %}selected{% endif %}>Завершено</option>
-      <option value="overdue" {% if selected_status == 'overdue' %}selected{% endif %}>Просрочено</option>
-    </select>
-  </div>
-  <div class="col-md-1">
-    <button class="btn btn-primary w-100">Применить</button>
-  </div>
-</form>
-
-<div class="table-responsive">
-  <table class="table table-striped align-middle">
-    <thead>
-      <tr>
-        <th>Курс</th>
-        <th>Программа ИБ</th>
-        <th>Назначено</th>
-        <th>Завершено</th>
-        <th>Средний результат</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for row in rows %}
-      <tr>
-        <td>{{ row.course }}</td>
-        <td>{{ row.program }}</td>
-        <td>{{ row.assigned }}</td>
-        <td>{{ row.completed }}</td>
-        <td>{{ row.avg_percent|floatformat:2 }}%</td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="5">Нет данных.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
-{% endblock %}
+{% extends 'base.html' %}{% load static %}
+{% block title %}Отчёт по курсам — IBSec LMS{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/report-dashboard.css' %}">{% endblock %}
+{% block content %}<section class="report-page">
+<header class="report-heading"><div><span class="report-eyebrow">Управление обучением</span><h1>Отчёт по курсам</h1><p>Назначения, завершения и средний результат по учебным курсам.</p></div><a class="button button-primary" href="{% url 'reports:course_export_csv' %}?department={{ selected_department }}&course={{ selected_course }}&status={{ selected_status }}">Скачать CSV</a></header>
+<nav class="report-tabs" aria-label="Разделы отчётов"><a href="{% url 'reports:dashboard' %}">Обзор</a><a href="{% url 'reports:employee_report' %}">По сотрудникам</a><a href="{% url 'reports:department_report' %}">По подразделениям</a><a class="is-active" href="{% url 'reports:course_report' %}">По курсам</a></nav>
+{% include 'reports/partials/report_filters.html' %}
+<article class="report-card"><div class="report-card-heading"><div><h2>Курсы</h2><p>Показатели сформированы с учётом выбранных условий.</p></div><strong>{{ rows|length }}</strong></div><div class="table-responsive"><table class="report-table"><thead><tr><th>Курс</th><th>Программа</th><th>Назначено</th><th>Завершено</th><th>Средний результат</th></tr></thead><tbody>{% for row in rows %}<tr><td><strong>{{ row.course }}</strong></td><td>{{ row.program }}</td><td>{{ row.assigned }}</td><td>{{ row.completed }}</td><td><strong>{{ row.avg_percent|floatformat:1 }}%</strong></td></tr>{% empty %}<tr><td colspan="5" class="empty-state">По выбранным условиям данных нет.</td></tr>{% endfor %}</tbody></table></div></article>
+</section>{% endblock %}

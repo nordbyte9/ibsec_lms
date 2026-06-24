@@ -1,121 +1,116 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Прохождение теста{% endblock %}
+{% block title %}{{ quiz.title }} — прохождение{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/quiz-interface.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+<section class="quiz-taking" data-quiz-page data-remaining-seconds="{{ remaining_seconds }}">
+  <div class="quiz-taking-header ibsec-card">
+    <div>
+      <nav class="quiz-breadcrumbs" aria-label="Навигационная цепочка">
+        <a href="{% url 'courses:detail' quiz.course.pk %}">{{ quiz.course.title }}</a>
+        <span aria-hidden="true">›</span>
+        <span>{{ quiz.title }}</span>
+      </nav>
+      <div class="quiz-taking-title-row">
         <div>
-            <h1 class="h3 mb-2">{{ quiz.title }}</h1>
-            <p class="text-muted mb-0">
-                Попытка №{{ attempt.attempt_number }} ·
-                проходной балл {{ quiz.pass_score }}% ·
-                использовано {{ attempts_used }} из {{ quiz.max_attempts }}
-            </p>
+          <span class="quiz-eyebrow">Попытка {{ attempt.attempt_number }}</span>
+          <h1>{{ quiz.title }}</h1>
         </div>
+        <div class="quiz-timer" role="timer" aria-live="polite">
+          <span>Осталось времени</span>
+          <strong data-quiz-timer>00:00</strong>
+        </div>
+      </div>
+    </div>
+    <div class="quiz-progress-block">
+      <div class="quiz-progress-label">
+        <span>Заполнено ответов</span>
+        <strong><span data-answered-count>0</span> из {{ questions|length }}</strong>
+      </div>
+      <div class="quiz-progress-track" aria-hidden="true">
+        <span data-quiz-progress></span>
+      </div>
+    </div>
+  </div>
 
-        <div class="card shadow-sm border-warning">
-            <div class="card-body py-2 px-3">
-                <div class="small text-muted">Осталось времени</div>
-                <div
-                    id="quiz-countdown"
-                    class="fs-4 fw-semibold"
-                    data-remaining-seconds="{{ remaining_seconds }}"
-                    aria-live="polite"
-                >
-                    --:--
-                </div>
+  <form method="post" class="quiz-form" data-quiz-form novalidate>
+    {% csrf_token %}
+    <input type="hidden" name="attempt_token" value="{{ attempt.token }}">
+
+    <div class="quiz-layout">
+      <div class="quiz-questions">
+        {% for question in questions %}
+          <fieldset class="quiz-question-card ibsec-card" id="question-{{ forloop.counter }}" data-question-card>
+            <legend>
+              <span>Вопрос {{ forloop.counter }} из {{ questions|length }}</span>
+              <strong>{{ question.text }}</strong>
+            </legend>
+
+            <div class="quiz-options">
+              {% for option in question.options.all %}
+                <label class="quiz-option">
+                  <input type="radio" name="question_{{ question.pk }}" value="{{ option.pk }}" data-answer-input>
+                  <span class="quiz-option-mark" aria-hidden="true"></span>
+                  <span class="quiz-option-letter">{{ forloop.counter }}</span>
+                  <span class="quiz-option-text">{{ option.text }}</span>
+                </label>
+              {% empty %}
+                <p class="quiz-no-options">Варианты ответа пока не добавлены.</p>
+              {% endfor %}
             </div>
-        </div>
-    </div>
-
-    <div id="quiz-expired-message" class="alert alert-danger d-none" role="alert">
-        Время прохождения теста истекло. Отправка ответов заблокирована сервером.
-    </div>
-
-    <form method="post" id="quiz-form" novalidate>
-        {% csrf_token %}
-        <input type="hidden" name="attempt_token" value="{{ attempt.token }}">
-
-        {% for q in questions %}
-            <fieldset class="card shadow-sm mb-3">
-                <div class="card-body">
-                    <legend class="h5 mb-3">
-                        {{ forloop.counter }}. {{ q.text }}
-                    </legend>
-
-                    {% for opt in q.options.all %}
-                        <div class="form-check mb-2">
-                            <input
-                                class="form-check-input"
-                                type="radio"
-                                name="question_{{ q.id }}"
-                                id="option_{{ opt.id }}"
-                                value="{{ opt.id }}"
-                            >
-                            <label class="form-check-label" for="option_{{ opt.id }}">
-                                {{ opt.text }}
-                            </label>
-                        </div>
-                    {% empty %}
-                        <div class="alert alert-warning mb-0">
-                            Для вопроса не настроены варианты ответа.
-                        </div>
-                    {% endfor %}
-                </div>
-            </fieldset>
+          </fieldset>
         {% empty %}
-            <div class="alert alert-warning">
-                В тесте пока нет вопросов.
-            </div>
+          <article class="quiz-empty ibsec-card">
+            <h2>Вопросы пока не добавлены</h2>
+            <p>Обратитесь к ответственному за обучение.</p>
+          </article>
         {% endfor %}
+      </div>
 
-        <button type="submit" class="btn btn-primary" id="quiz-submit-button">
-            Отправить ответы
-        </button>
+      <aside class="quiz-navigation ibsec-card" aria-label="Навигация по вопросам">
+        <div class="quiz-navigation-head">
+          <h2>Вопросы</h2>
+          <span>{{ questions|length }}</span>
+        </div>
+        <div class="quiz-navigation-grid">
+          {% for question in questions %}
+            <a href="#question-{{ forloop.counter }}" data-question-link data-question-number="{{ forloop.counter }}" aria-label="Перейти к вопросу {{ forloop.counter }}">{{ forloop.counter }}</a>
+          {% endfor %}
+        </div>
+        <div class="quiz-navigation-legend">
+          <span><i class="is-current"></i>Текущий</span>
+          <span><i class="is-answered"></i>Отвечен</span>
+          <span><i></i>Без ответа</span>
+        </div>
+        <div class="quiz-navigation-note">
+          <strong>Ответы сохраняются в форме</strong>
+          <p>Отправка на сервер произойдёт после нажатия кнопки завершения.</p>
+        </div>
+        <button class="btn btn-primary w-100" type="submit" data-submit-quiz>Завершить проверку</button>
+        <a class="quiz-return-link" href="{% url 'quizzes:course_quiz_entry' quiz.course.pk %}">Вернуться к описанию</a>
+      </aside>
+    </div>
+  </form>
+
+  <dialog class="quiz-confirm-dialog" data-quiz-dialog>
+    <form method="dialog">
+      <div class="quiz-confirm-icon">✓</div>
+      <h2>Завершить проверку?</h2>
+      <p>Отвечено на <strong data-dialog-answered>0</strong> из {{ questions|length }} вопросов. После отправки изменить ответы будет нельзя.</p>
+      <div class="quiz-confirm-actions">
+        <button class="btn btn-outline-secondary" value="cancel">Продолжить отвечать</button>
+        <button class="btn btn-primary" value="confirm">Отправить ответы</button>
+      </div>
     </form>
-</div>
+  </dialog>
+</section>
+{% endblock %}
 
-<script>
-(function () {
-    const timer = document.getElementById('quiz-countdown');
-    const form = document.getElementById('quiz-form');
-    const submitButton = document.getElementById('quiz-submit-button');
-    const expiredMessage = document.getElementById('quiz-expired-message');
-
-    if (!timer || !form || !submitButton) {
-        return;
-    }
-
-    let remaining = Number.parseInt(timer.dataset.remainingSeconds || '0', 10);
-
-    function renderTimer() {
-        const safeRemaining = Math.max(remaining, 0);
-        const minutes = Math.floor(safeRemaining / 60);
-        const seconds = safeRemaining % 60;
-
-        timer.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-
-        if (safeRemaining <= 0) {
-            submitButton.disabled = true;
-            expiredMessage.classList.remove('d-none');
-            return false;
-        }
-
-        return true;
-    }
-
-    if (!renderTimer()) {
-        return;
-    }
-
-    const intervalId = window.setInterval(function () {
-        remaining -= 1;
-
-        if (!renderTimer()) {
-            window.clearInterval(intervalId);
-        }
-    }, 1000);
-})();
-</script>
+{% block extra_js %}
+  <script src="{% static 'js/quiz-interface.js' %}"></script>
 {% endblock %}

@@ -1,21 +1,80 @@
 {% extends 'base.html' %}
-{% block title %}Результат теста{% endblock %}
+{% load static %}
+
+{% block title %}Результат проверки — IBSec LMS{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/quiz-interface.css' %}">
+{% endblock %}
+
 {% block content %}
-<h3>Результат теста</h3>
-<div class="card mb-3">
-  <div class="card-body">
-    <p class="mb-2"><b>Попытка:</b> {{ submission.attempt_number }}</p>
-    <p class="mb-2"><b>Баллы:</b> {{ submission.score }}</p>
-    <p class="mb-2"><b>Процент:</b> {{ submission.percent }}%</p>
-    <p class="mb-2"><b>Сдан:</b> {% if submission.passed %}Да{% else %}Нет{% endif %}</p>
-    <p class="mb-0"><b>Дата сдачи:</b> {{ submission.taken_at }}</p>
+<section class="quiz-result-page">
+  <nav class="quiz-breadcrumbs" aria-label="Навигационная цепочка">
+    <a href="{% url 'courses:detail' submission.quiz.course.pk %}">{{ submission.quiz.course.title }}</a>
+    <span aria-hidden="true">›</span>
+    <span>Результат проверки</span>
+  </nav>
+
+  <article class="quiz-result-hero ibsec-card {% if submission.passed %}is-passed{% else %}is-failed{% endif %}">
+    <div class="quiz-result-ring" style="--result: {{ submission.percent|floatformat:0 }}">
+      <span>{{ submission.percent|floatformat:0 }}%</span>
+    </div>
+    <div class="quiz-result-copy">
+      {% if submission.passed %}
+        <span class="quiz-result-status">Проверка пройдена</span>
+        <h1>Отличный результат</h1>
+        <p>Вы подтвердили усвоение материала курса «{{ submission.quiz.course.title }}».</p>
+      {% else %}
+        <span class="quiz-result-status">Требуется повторение</span>
+        <h1>Пока недостаточно баллов</h1>
+        <p>Повторите материалы курса и используйте оставшуюся попытку.</p>
+      {% endif %}
+    </div>
+    <div class="quiz-result-actions">
+      <a class="btn btn-outline-secondary" href="{% url 'courses:detail' submission.quiz.course.pk %}">К материалам курса</a>
+      <a class="btn btn-primary" href="{% url 'quizzes:course_quiz_entry' submission.quiz.course.pk %}">К проверке знаний</a>
+    </div>
+  </article>
+
+  <div class="quiz-result-grid">
+    <article class="quiz-result-stat ibsec-card">
+      <span>Правильных ответов</span>
+      <strong>{{ submission.score }}</strong>
+      <small>из {{ submission.quiz.questions.count }}</small>
+    </article>
+    <article class="quiz-result-stat ibsec-card">
+      <span>Проходной результат</span>
+      <strong>{{ submission.quiz.pass_score }}%</strong>
+      <small>установлен для теста</small>
+    </article>
+    <article class="quiz-result-stat ibsec-card">
+      <span>Номер попытки</span>
+      <strong>{{ submission.attempt_number }}</strong>
+      <small>из {{ submission.quiz.max_attempts }}</small>
+    </article>
+    <article class="quiz-result-stat ibsec-card">
+      <span>Дата прохождения</span>
+      <strong>{{ submission.taken_at|date:'d.m.Y' }}</strong>
+      <small>{{ submission.taken_at|date:'H:i' }}</small>
+    </article>
   </div>
-</div>
-{% if submission.passed %}
-  <div class="alert alert-success">Тест пройден.</div>
-{% else %}
-  <div class="alert alert-danger">Тест не пройден.</div>
-{% endif %}
-<a class="btn btn-outline-primary" href="{% url 'quizzes:attempt_history' %}">История попыток</a>
-<a class="btn btn-outline-secondary" href="/reports/my/">Мой прогресс</a>
+
+  <article class="quiz-result-details ibsec-card">
+    <div class="quiz-section-heading">
+      <div>
+        <span class="quiz-eyebrow">Сведения о результате</span>
+        <h2>{{ submission.quiz.title }}</h2>
+      </div>
+      <a href="{% url 'quizzes:attempt_history' %}">История попыток</a>
+    </div>
+
+    <dl class="quiz-result-list">
+      <div><dt>Сотрудник</dt><dd>{{ submission.user.get_full_name|default:submission.user.username }}</dd></div>
+      <div><dt>Курс</dt><dd>{{ submission.quiz.course.title }}</dd></div>
+      <div><dt>Набрано баллов</dt><dd>{{ submission.score }}</dd></div>
+      <div><dt>Итоговый процент</dt><dd>{{ submission.percent|floatformat:0 }}%</dd></div>
+      <div><dt>Состояние</dt><dd>{% if submission.passed %}<span class="quiz-status-pill is-success">Пройдено</span>{% else %}<span class="quiz-status-pill is-danger">Не пройдено</span>{% endif %}</dd></div>
+    </dl>
+  </article>
+</section>
 {% endblock %}

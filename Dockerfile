@@ -30,6 +30,10 @@ WORKDIR /app
 COPY --from=builder /opt/venv /opt/venv
 COPY --chown=django:django . /app
 
+# Normalize shell scripts copied from Windows.
+RUN find /app -type f -name '*.sh' -exec sed -i 's/\r$//' {} + \
+    && chmod +x /app/docker/entrypoint.sh /app/demo/start-web.sh
+
 RUN chmod +x /app/docker/entrypoint.sh /app/demo/start-web.sh \
     && mkdir -p /app/staticfiles /app/media \
     && chown -R django:django /app/staticfiles /app/media

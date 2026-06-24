@@ -1,0 +1,30 @@
+ИЗОБРАЖЕНИЯ КАТАЛОГА КУРСОВ
+
+Все изображения загружены с Unsplash и используются в соответствии с лицензией Unsplash.
+Страница лицензии: https://unsplash.com/license
+
+1. osnovy-informatsionnoy-bezopasnosti.webp
+   Автор: FlyD
+   Исходник: https://unsplash.com/photos/C5pXRFEjq3w
+
+2. paroli-i-autentifikatsiya.webp
+   Автор: Towfiqu barbhuiya
+   Исходник: https://unsplash.com/photos/FnA5pAzqhMM
+
+3. setevaya-bezopasnost.webp
+   Автор: Dan Nelson
+   Исходник: https://unsplash.com/photos/AvSFPw5Tp68
+
+4. kiberbezopasnost-sotrudnikov.webp
+   Автор: Markus Winkler
+   Исходник: https://unsplash.com/photos/dFVa5T9LE8o
+
+5. upravlenie-dostupom.webp
+   Автор: Sasun Bughdaryan
+   Исходник: https://unsplash.com/photos/2T4l02ZYj-k
+
+6. zashchita-ot-fishinga.webp
+   Автор: FlyD
+   Исходник: https://unsplash.com/photos/mT7lXZPjk7U
+
+Изображения приведены к единому формату 1200 × 675 пикселей и сохранены в WebP.

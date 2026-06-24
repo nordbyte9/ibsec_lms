@@ -1,15 +1,169 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block title %}Добавить урок{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/lesson-form.css' %}">
+{% endblock %}
+
 {% block content %}
-<h3>Добавить урок в курс «{{ course.title }}»</h3>
+<section class="lesson-editor" aria-labelledby="lesson-editor-title">
+  <header class="lesson-editor__heading">
+    <div>
+      <p class="lesson-editor__eyebrow">Управление курсом</p>
+      <h1 id="lesson-editor-title">Добавить урок</h1>
+      <p class="lesson-editor__subtitle">
+        Курс: <strong>«{{ course.title }}»</strong>. Заполните содержание урока и при необходимости прикрепите защищённый материал.
+      </p>
+    </div>
+    <a class="lesson-editor__back" href="{% url 'courses:detail' course.pk %}">
+      <svg aria-hidden="true" viewBox="0 0 24 24">
+        <path d="m15 18-6-6 6-6"></path>
+      </svg>
+      Вернуться к курсу
+    </a>
+  </header>
 
-<div class="alert alert-info" role="alert">
-  Загружаемые материалы проверяются по размеру, расширению и фактическому содержимому.
-  Файлы выдаются только через авторизованный маршрут и не публикуются напрямую.
-</div>
+  <div class="lesson-editor__layout">
+    <form method="post" enctype="multipart/form-data" class="lesson-form" novalidate>
+      {% csrf_token %}
 
-<form method="post" enctype="multipart/form-data">{% csrf_token %}
-  {{ form.as_p }}
-  <button class="btn btn-primary">Сохранить</button>
-</form>
+      {% if form.non_field_errors %}
+        <div class="lesson-form__alert" role="alert">
+          {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+        </div>
+      {% endif %}
+
+      <section class="lesson-form__card" aria-labelledby="lesson-main-data">
+        <div class="lesson-form__section-heading">
+          <span class="lesson-form__step" aria-hidden="true">1</span>
+          <div>
+            <h2 id="lesson-main-data">Основные сведения</h2>
+            <p>Название, формат и положение урока в программе курса.</p>
+          </div>
+        </div>
+
+        <div class="lesson-form__grid lesson-form__grid--main">
+          <div class="lesson-field lesson-field--wide {% if form.title.errors %}lesson-field--error{% endif %}">
+            <label for="{{ form.title.id_for_label }}">{{ form.title.label }}</label>
+            {{ form.title }}
+            <p class="lesson-field__hint">Короткое и понятное название, которое увидит сотрудник.</p>
+            {% for error in form.title.errors %}<p class="lesson-field__error">{{ error }}</p>{% endfor %}
+          </div>
+
+          <div class="lesson-field {% if form.type.errors %}lesson-field--error{% endif %}">
+            <label for="{{ form.type.id_for_label }}">{{ form.type.label }}</label>
+            {{ form.type }}
+            <p class="lesson-field__hint">Выберите способ представления материала.</p>
+            {% for error in form.type.errors %}<p class="lesson-field__error">{{ error }}</p>{% endfor %}
+          </div>
+
+          <div class="lesson-field lesson-field--order {% if form.order.errors %}lesson-field--error{% endif %}">
+            <label for="{{ form.order.id_for_label }}">{{ form.order.label }}</label>
+            {{ form.order }}
+            <p class="lesson-field__hint">Определяет место урока в курсе.</p>
+            {% for error in form.order.errors %}<p class="lesson-field__error">{{ error }}</p>{% endfor %}
+          </div>
+        </div>
+      </section>
+
+      <section class="lesson-form__card" aria-labelledby="lesson-content-heading">
+        <div class="lesson-form__section-heading">
+          <span class="lesson-form__step" aria-hidden="true">2</span>
+          <div>
+            <h2 id="lesson-content-heading">Содержание урока</h2>
+            <p data-content-section-description>Добавьте основной учебный текст или пояснение к материалу.</p>
+          </div>
+        </div>
+
+        <div class="lesson-field lesson-field--content {% if form.content.errors %}lesson-field--error{% endif %}">
+          <label for="{{ form.content.id_for_label }}" data-content-label>{{ form.content.label }}</label>
+          {{ form.content }}
+          <p class="lesson-field__hint" data-content-hint>
+            Используйте абзацы и короткие смысловые блоки, чтобы материал было удобно читать.
+          </p>
+          {% for error in form.content.errors %}<p class="lesson-field__error">{{ error }}</p>{% endfor %}
+        </div>
+      </section>
+
+      <section class="lesson-form__card lesson-file-card" data-file-section aria-labelledby="lesson-file-heading">
+        <div class="lesson-form__section-heading">
+          <span class="lesson-form__step" aria-hidden="true">3</span>
+          <div>
+            <h2 id="lesson-file-heading">Защищённый материал</h2>
+            <p>Прикрепите материал только для урока типа «Файл».</p>
+          </div>
+        </div>
+
+        <div class="lesson-file-dropzone" data-file-dropzone>
+          <div class="lesson-file-dropzone__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5"></path>
+              <path d="M5 14.5v3A2.5 2.5 0 0 0 7.5 20h9a2.5 2.5 0 0 0 2.5-2.5v-3"></path>
+            </svg>
+          </div>
+          <div class="lesson-file-dropzone__body">
+            <h3>Перетащите учебный материал сюда</h3>
+            <p>или выберите его на компьютере</p>
+            <label class="lesson-file-dropzone__button" for="{{ form.file.id_for_label }}">Выбрать файл</label>
+            {{ form.file }}
+            <p class="lesson-file-dropzone__name" data-file-name aria-live="polite">Материал не выбран</p>
+          </div>
+        </div>
+
+        <p class="lesson-file-card__note">Форматы PDF, DOCX, XLSX, PPTX, TXT, CSV, JPG и PNG; размер — до 20 МБ.</p>
+        {% for error in form.file.errors %}<p class="lesson-field__error">{{ error }}</p>{% endfor %}
+      </section>
+
+      <footer class="lesson-form__actions">
+        <a class="lesson-form__cancel" href="{% url 'courses:detail' course.pk %}">Отмена</a>
+        <button class="lesson-form__submit" type="submit">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M5 12.5 9.2 17 19 7"></path>
+          </svg>
+          Сохранить урок
+        </button>
+      </footer>
+    </form>
+
+    <aside class="lesson-editor__aside" aria-label="Подсказки по заполнению">
+      <section class="lesson-guide-card">
+        <p class="lesson-guide-card__eyebrow">Подсказка</p>
+        <h2>Как выбрать тип урока</h2>
+        <div class="lesson-guide-list">
+          <div>
+            <span>Текст</span>
+            <p>Основной материал размещается прямо на странице курса.</p>
+          </div>
+          <div>
+            <span>Ссылка</span>
+            <p>Укажите полный адрес внешнего ресурса в поле содержания.</p>
+          </div>
+          <div>
+            <span>Файл</span>
+            <p>Добавьте описание и прикрепите защищённый документ.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="lesson-security-card">
+        <div class="lesson-security-card__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 3 19 6v5.5c0 4.4-2.9 7.7-7 9.5-4.1-1.8-7-5.1-7-9.5V6l7-3Z"></path>
+            <path d="m8.8 12 2 2 4.4-4.6"></path>
+          </svg>
+        </div>
+        <div>
+          <h2>Файл защищён</h2>
+          <p>Материал проверяется перед сохранением и выдаётся только авторизованным пользователям.</p>
+        </div>
+      </section>
+    </aside>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+  <script src="{% static 'js/lesson-form.js' %}"></script>
 {% endblock %}

@@ -1,43 +1,71 @@
 {% extends 'base.html' %}
-{% block title %}История попыток{% endblock %}
+{% load static %}
+
+{% block title %}История попыток — IBSec LMS{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/quiz-interface.css' %}">
+{% endblock %}
+
 {% block content %}
-<h3>История попыток</h3>
-<div class="table-responsive">
-  <table class="table table-striped align-middle">
-    <thead>
-      <tr>
-        {% if rbac.view_all_results %}
-          <th>Сотрудник</th>
-        {% endif %}
-        <th>Курс</th>
-        <th>Тест</th>
-        <th>Попытка</th>
-        <th>Баллы</th>
-        <th>Процент</th>
-        <th>Сдан</th>
-        <th>Дата</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for submission in submissions %}
-      <tr>
-        {% if rbac.view_all_results %}
-          <td>{{ submission.user.get_full_name|default:submission.user.username }}</td>
-        {% endif %}
-        <td>{{ submission.quiz.course.title }}</td>
-        <td>{{ submission.quiz.title }}</td>
-        <td>{{ submission.attempt_number }}</td>
-        <td>{{ submission.score }}</td>
-        <td>{{ submission.percent }}%</td>
-        <td>{% if submission.passed %}Да{% else %}Нет{% endif %}</td>
-        <td>{{ submission.taken_at }}</td>
-      </tr>
-      {% empty %}
-      <tr>
-        <td colspan="{% if rbac.view_all_results %}8{% else %}7{% endif %}">Попыток пока нет.</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
+<section class="quiz-history-page">
+  <header class="quiz-page-heading">
+    <div>
+      <span class="quiz-eyebrow">Результаты обучения</span>
+      <h1>История попыток</h1>
+      <p>{% if rbac.view_all_results %}Результаты проверок знаний сотрудников.{% else %}Ваши результаты и использованные попытки.{% endif %}</p>
+    </div>
+  </header>
+
+  {% if submissions %}
+    <div class="quiz-history-summary">
+      <article class="ibsec-card"><span>Всего результатов</span><strong>{{ submissions|length }}</strong></article>
+      <article class="ibsec-card"><span>Последний результат</span><strong>{{ submissions.0.percent|floatformat:0 }}%</strong></article>
+      <article class="ibsec-card"><span>Последнее состояние</span><strong>{% if submissions.0.passed %}Пройдено{% else %}Не пройдено{% endif %}</strong></article>
+    </div>
+
+    <article class="quiz-history-table-card ibsec-card">
+      <div class="quiz-history-table-wrap">
+        <table class="quiz-history-table">
+          <thead>
+            <tr>
+              {% if rbac.view_all_results %}<th>Сотрудник</th>{% endif %}
+              <th>Курс и проверка</th>
+              <th>Попытка</th>
+              <th>Результат</th>
+              <th>Состояние</th>
+              <th>Дата</th>
+              <th><span class="visually-hidden">Действие</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for submission in submissions %}
+              <tr>
+                {% if rbac.view_all_results %}
+                  <td><strong>{{ submission.user.get_full_name|default:submission.user.username }}</strong></td>
+                {% endif %}
+                <td>
+                  <strong>{{ submission.quiz.course.title }}</strong>
+                  <span>{{ submission.quiz.title }}</span>
+                </td>
+                <td>№ {{ submission.attempt_number }}</td>
+                <td><strong>{{ submission.percent|floatformat:0 }}%</strong><span>{{ submission.score }} балл.</span></td>
+                <td>{% if submission.passed %}<span class="quiz-status-pill is-success">Пройдено</span>{% else %}<span class="quiz-status-pill is-danger">Не пройдено</span>{% endif %}</td>
+                <td>{{ submission.taken_at|date:'d.m.Y' }}<span>{{ submission.taken_at|date:'H:i' }}</span></td>
+                <td><a class="quiz-table-action" href="{% url 'quizzes:result' submission.pk %}" aria-label="Открыть результат">Открыть</a></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </article>
+  {% else %}
+    <article class="quiz-empty ibsec-card">
+      <div class="quiz-empty-icon">✓</div>
+      <h2>Попыток пока нет</h2>
+      <p>После прохождения проверки знаний результат появится на этой странице.</p>
+      <a class="btn btn-primary" href="{% url 'courses:list' %}">Перейти к курсам</a>
+    </article>
+  {% endif %}
+</section>
 {% endblock %}

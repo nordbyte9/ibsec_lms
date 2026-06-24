@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Удаление категории — IBSec LMS{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/knowledge-base.css' %}">{% endblock %}
+{% block content %}
+<section class="knowledge-confirm-card"><p class="knowledge-eyebrow">База знаний</p><h1>Удалить категорию?</h1><p>Категория «{{ category.name }}» будет удалена. Если в ней есть статьи, система не позволит выполнить удаление.</p><form method="post">{% csrf_token %}<a class="ibsec-button ibsec-button--secondary" href="{% url 'knowledge:manage_categories' %}">Отмена</a><button class="ibsec-button knowledge-danger-button" type="submit">Удалить</button></form></section>
+{% endblock %}

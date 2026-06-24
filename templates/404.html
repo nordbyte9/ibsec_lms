@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Страница не найдена — IBSec LMS{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/service-pages.css' %}">{% endblock %}
+{% block content %}
+<section class="service-error">
+  <span class="service-error__code">404</span>
+  <h1>Страница не найдена</h1>
+  <p>Адрес мог измениться, либо страница была удалена.</p>
+  <a class="service-button service-button--primary" href="{% url 'home' %}">Вернуться на главную</a>
+</section>
+{% endblock %}

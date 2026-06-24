@@ -1,55 +1,48 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Тест по курсу {{ course.title }}{% endblock %}
+{% block title %}{{ quiz.title|default:'Проверка знаний' }} — IBSec LMS{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/quiz-interface.css' %}">{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    {% if quiz %}
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <h1 class="h3">{{ quiz.title }}</h1>
-                <p>{{ quiz.description }}</p>
+<section class="quiz-entry quiz-entry--compact">
+  <nav class="quiz-breadcrumbs" aria-label="Навигационная цепочка">
+    <a href="{% url 'courses:list' %}">Курсы</a><span aria-hidden="true">›</span>
+    <a href="{% url 'courses:detail' course.pk %}">{{ course.title }}</a><span aria-hidden="true">›</span>
+    <span>Проверка знаний</span>
+  </nav>
 
-                <dl class="row mb-4">
-                    <dt class="col-sm-4">Проходной балл</dt>
-                    <dd class="col-sm-8">{{ quiz.pass_score }}%</dd>
+  {% if quiz %}
+  <article class="quiz-entry-card quiz-entry-card--compact ibsec-card">
+    <div class="quiz-entry-content">
+      <span class="quiz-eyebrow">Курс «{{ course.title }}»</span>
+      <h1>{{ quiz.title }}</h1>
+      <p class="quiz-entry-description">{{ quiz.description|default:'Ответьте на вопросы и подтвердите усвоение учебного материала.' }}</p>
 
-                    <dt class="col-sm-4">Лимит времени</dt>
-                    <dd class="col-sm-8">{{ quiz.time_limit_minutes }} мин.</dd>
+      <div class="quiz-rules-grid">
+        <div class="quiz-rule"><span class="quiz-rule-icon">⌛</span><span><strong>{{ quiz.time_limit_minutes }} мин.</strong><small>Время прохождения</small></span></div>
+        <div class="quiz-rule"><span class="quiz-rule-icon">✓</span><span><strong>{{ quiz.pass_score }}%</strong><small>Проходной результат</small></span></div>
+        <div class="quiz-rule"><span class="quiz-rule-icon">↻</span><span><strong>{{ quiz.max_attempts }}</strong><small>Всего попыток</small></span></div>
+        <div class="quiz-rule"><span class="quiz-rule-icon">{{ quiz.questions.count }}</span><span><strong>Вопросов</strong><small>В текущей проверке</small></span></div>
+      </div>
 
-                    <dt class="col-sm-4">Максимум попыток</dt>
-                    <dd class="col-sm-8">{{ quiz.max_attempts }}</dd>
+      <div class="quiz-attempt-summary">
+        <div><span>Использовано попыток</span><strong>{{ attempts_used }} из {{ quiz.max_attempts }}</strong></div>
+        <div><span>Осталось попыток</span><strong>{{ attempts_left }}</strong></div>
+      </div>
 
-                    <dt class="col-sm-4">Использовано</dt>
-                    <dd class="col-sm-8">{{ attempts_used }}</dd>
+      <div class="quiz-entry-note"><strong>Перед началом</strong><p>Убедитесь, что у вас достаточно времени. После запуска отсчёт продолжится, даже если закрыть страницу.</p></div>
 
-                    <dt class="col-sm-4">Осталось</dt>
-                    <dd class="col-sm-8">{{ attempts_left }}</dd>
-                </dl>
-
-                {% if active_attempt %}
-                    <a href="{% url 'quizzes:take' quiz.id %}" class="btn btn-warning">
-                        Продолжить попытку №{{ active_attempt.attempt_number }}
-                    </a>
-                {% elif attempts_used < quiz.max_attempts %}
-                    <a href="{% url 'quizzes:take' quiz.id %}" class="btn btn-primary">
-                        Начать тест
-                    </a>
-                {% else %}
-                    <div class="alert alert-danger mb-0">
-                        Лимит попыток исчерпан.
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-    {% else %}
-        <div class="alert alert-info">
-            Для курса «{{ course.title }}» пока нет активного теста.
-        </div>
-    {% endif %}
-
-    <a href="{% url 'quizzes:attempt_history' %}" class="btn btn-link mt-3">
-        История попыток
-    </a>
-</div>
+      <div class="quiz-entry-actions">
+        <a class="btn btn-outline-secondary" href="{% url 'courses:detail' course.pk %}">Вернуться к курсу</a>
+        {% if active_attempt %}<a class="btn btn-primary" href="{% url 'quizzes:take' quiz.pk %}">Продолжить попытку</a>
+        {% elif attempts_left > 0 %}<a class="btn btn-primary" href="{% url 'quizzes:take' quiz.pk %}">Начать проверку</a>
+        {% else %}<button class="btn btn-secondary" type="button" disabled>Попытки закончились</button>{% endif %}
+      </div>
+    </div>
+  </article>
+  {% else %}
+  <article class="quiz-empty ibsec-card"><div class="quiz-empty-icon">?</div><h1>Проверка знаний пока не добавлена</h1><p>Вернитесь к материалам курса. Проверка станет доступна после публикации преподавателем.</p><a class="btn btn-primary" href="{% url 'courses:detail' course.pk %}">Вернуться к курсу</a></article>
+  {% endif %}
+</section>
 {% endblock %}

@@ -1,29 +1,48 @@
 {% extends 'base.html' %}
-{% block title %}Профиль{% endblock %}
+{% load static %}
+{% block title %}Личный кабинет — IBSec LMS{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/management-forms.css' %}">{% endblock %}
+{% block extra_js %}<script src="{% static 'js/profile.js' %}"></script>{% endblock %}
 {% block content %}
-<div class="row">
-  <div class="col-lg-8">
-    <h3 class="mb-3">Профиль</h3>
-    <div class="card mb-4">
-      <div class="card-body">
-        <p class="mb-2"><b>Пользователь:</b> {{ request.user.get_full_name|default:request.user.username }}</p>
-        <p class="mb-2"><b>Роль:</b> {{ profile_obj.get_role_display }}</p>
-        <p class="mb-2"><b>Электронная почта:</b> {{ request.user.email }}</p>
-        <p class="mb-2"><b>Подразделение:</b> {{ profile_obj.department|default:"-" }}</p>
-        <p class="mb-0"><b>Должность:</b> {{ profile_obj.position|default:"-" }}</p>
+<section class="management-page">
+  <header class="management-heading"><div><h1>Личный кабинет</h1><p>Персональные сведения, фотография и рабочие данные учётной записи.</p></div></header>
+  <div class="profile-grid">
+    <aside class="ibsec-card profile-card profile-identity">
+      <div class="profile-avatar-wrap">
+        {% if profile_obj.avatar %}<img class="profile-identity__avatar profile-identity__avatar--image" src="{{ profile_obj.avatar.url }}" alt="Фотография пользователя" data-avatar-preview>{% else %}<div class="profile-identity__avatar" data-avatar-fallback>{{ request.user.first_name|default:request.user.username|first|upper }}</div><img class="profile-identity__avatar profile-identity__avatar--image" src="" alt="Предпросмотр фотографии" data-avatar-preview hidden>{% endif %}
       </div>
-    </div>
+      <h2>{{ request.user.get_full_name|default:request.user.username }}</h2>
+      <p>{{ profile_obj.get_role_display }}</p>
+      <div class="profile-details">
+        <div class="profile-detail"><span>Имя пользователя</span><strong>{{ request.user.username }}</strong></div>
+        <div class="profile-detail"><span>Статус</span><strong>{% if request.user.is_active %}Активен{% else %}Отключён{% endif %}</strong></div>
+      </div>
+    </aside>
 
-    <div class="card">
-      <div class="card-body">
-        <h5 class="card-title mb-3">Данные профиля</h5>
-        <form method="post">
-          {% csrf_token %}
-          {{ form.as_p }}
-          <button class="btn btn-primary">Сохранить</button>
-        </form>
+    <form method="post" enctype="multipart/form-data" class="ibsec-card management-form-card profile-form">{% csrf_token %}
+      <h2>Персональные сведения</h2>
+      <div class="profile-fields-grid">
+        {% for field in form %}
+          <div class="field-group {% if field.name == 'avatar' or field.name == 'remove_avatar' %}field-group--wide{% endif %}">
+            {% if field.name == 'remove_avatar' %}
+              <label class="profile-remove-avatar">{{ field }} <span>{{ field.label }}</span></label>
+            {% elif field.name == 'avatar' %}
+              <span class="field-label">{{ field.label }}</span>
+              <div class="file-picker file-picker--avatar">
+                {{ field }}
+                <label class="file-picker__button" for="{{ field.id_for_label }}">Выбрать фотографию</label>
+                <span class="file-picker__name" data-avatar-file-name>Фотография не выбрана</span>
+              </div>
+              <div class="helptext">Форматы JPEG, PNG и WebP; размер — до 3 МБ.</div>
+            {% else %}
+              <label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}
+            {% endif %}
+            {% if field.errors %}<ul class="field-errors">{% for error in field.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+          </div>
+        {% endfor %}
       </div>
-    </div>
+      <div class="management-form-footer"><button class="btn btn-primary" type="submit">Сохранить изменения</button></div>
+    </form>
   </div>
-</div>
+</section>
 {% endblock %}

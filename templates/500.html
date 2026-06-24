@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Ошибка системы — IBSec LMS{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/service-pages.css' %}">{% endblock %}
+{% block content %}
+<section class="service-error">
+  <span class="service-error__code">500</span>
+  <h1>Не удалось выполнить запрос</h1>
+  <p>Произошла внутренняя ошибка. Повторите попытку позднее.</p>
+  <a class="service-button service-button--primary" href="{% url 'home' %}">Вернуться на главную</a>
+</section>
+{% endblock %}

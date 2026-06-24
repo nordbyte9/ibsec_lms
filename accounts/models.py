@@ -28,8 +28,6 @@ class Profile(models.Model):
         SECURITY_OFFICER = 'security_officer', 'Ответственный за ИБ'
         ADMIN = 'admin', 'Администратор'
 
-    # Совместимость с существующим кодом, который использует
-    # Profile.ROLE_CHOICES.
     ROLE_CHOICES = Role.choices
 
     user = models.OneToOneField(
@@ -55,6 +53,12 @@ class Profile(models.Model):
         null=True,
         blank=True,
         related_name='profiles',
+    )
+    avatar = models.ImageField(
+        'Аватар',
+        upload_to='profiles/avatars/%Y/%m/',
+        blank=True,
+        null=True,
     )
 
     def __str__(self):

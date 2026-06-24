@@ -1,36 +1,96 @@
 {% extends 'base.html' %}
-{% block title %}Курсы{% endblock %}
+{% load static course_design %}
+
+{% block title %}Каталог курсов{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/course-catalog.css' %}">{% endblock %}
+
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h3>Курсы</h3>
-  {% if rbac.manage_courses %}
-  <a class="btn btn-sm btn-outline-primary" href="{% url 'courses:create' %}">Создать курс</a>
-  {% endif %}
-</div>
-<div class="row">
-{% for c in courses %}
-  <div class="col-md-6">
-    <div class="card mb-3">
-      <div class="card-body">
-        <h5 class="card-title">{{ c.title }}</h5>
-        <p class="card-text">{{ c.description|truncatewords:30 }}</p>
-        <div class="small text-muted mb-2">
-          {% if c.training_program %}
-            Программа: {{ c.training_program.title }} · Категория: {{ c.training_program.category.name }}
-          {% else %}
-            Программа не назначена
-          {% endif %}
-        </div>
-        <div class="small mb-3">
-          {% if c.is_mandatory %}<span class="badge bg-danger">Обязательный</span>{% endif %}
-          {% if c.validity_days %}<span class="badge bg-secondary">Срок: {{ c.validity_days }} дн.</span>{% endif %}
-        </div>
-        <a class="btn btn-primary" href="{% url 'courses:detail' c.pk %}">Открыть</a>
-      </div>
+{% course_catalog_cards courses as catalog_cards %}
+{% course_catalog_summary catalog_cards as catalog_summary %}
+<section class="catalog-page" data-course-catalog>
+  <header class="catalog-heading">
+    <div>
+      <p class="catalog-eyebrow">Учебные материалы</p>
+      <h1>Каталог курсов</h1>
+      <p class="catalog-intro">Выберите программу обучения по информационной безопасности и откройте материалы курса.</p>
     </div>
+    {% if rbac.manage_courses %}<a class="btn btn-primary catalog-create" href="{% url 'courses:create' %}">Создать курс</a>{% endif %}
+  </header>
+
+  <section class="catalog-toolbar ibsec-card" aria-label="Поиск и фильтры каталога">
+    <label class="catalog-search" for="catalog-search-input">
+      <span class="catalog-search-icon" aria-hidden="true">⌕</span>
+      <span class="visually-hidden">Поиск по каталогу</span>
+      <input id="catalog-search-input" class="form-control" type="search" placeholder="Поиск по названию, описанию или категории" autocomplete="off" data-catalog-search>
+    </label>
+
+    <div class="catalog-compact-filters">
+      <label class="catalog-filter-control" for="catalog-category">
+        <span>Категория</span>
+        <select id="catalog-category" class="form-select" data-catalog-category>
+          <option value="">Все категории</option>
+          {% for category in catalog_summary.categories %}<option value="{{ category|lower }}">{{ category }}</option>{% endfor %}
+        </select>
+      </label>
+      <label class="catalog-switch catalog-switch--compact">
+        <input type="checkbox" data-catalog-mandatory>
+        <span>Только обязательные</span>
+      </label>
+      <button class="catalog-reset" type="button" data-catalog-reset>Сбросить</button>
+    </div>
+
+    <div class="catalog-tabs" role="group" aria-label="Разделы каталога">
+      <button class="catalog-tab is-active" type="button" data-catalog-tab="all">Все курсы</button>
+      <button class="catalog-tab" type="button" data-catalog-tab="assigned">Мои курсы</button>
+      <button class="catalog-tab" type="button" data-catalog-tab="mandatory">Обязательные</button>
+    </div>
+  </section>
+
+  <div class="catalog-summary-line" aria-label="Сводка каталога">
+    <span><strong>{{ catalog_summary.total }}</strong> курсов</span>
+    <span><strong>{{ catalog_summary.mandatory }}</strong> обязательных</span>
+    <span><strong>{{ catalog_summary.assigned }}</strong> назначено вам</span>
   </div>
-{% empty %}
-  <p>Пока нет опубликованных курсов.</p>
-{% endfor %}
-</div>
+
+  {% if catalog_cards %}
+    {% with featured=catalog_cards.0 %}
+    <article class="catalog-featured ibsec-card" data-course-card data-title="{{ featured.course.title|lower }}" data-description="{{ featured.course.description|lower }}" data-category="{{ featured.category_key }}" data-assigned="{% if featured.is_assigned %}1{% else %}0{% endif %}" data-mandatory="{% if featured.course.is_mandatory %}1{% else %}0{% endif %}">
+      <div class="catalog-featured-image"><img src="{% static featured.image %}" alt="Иллюстрация к курсу «{{ featured.course.title }}»"><span class="catalog-image-label">Рекомендуемый курс</span></div>
+      <div class="catalog-featured-content">
+        <div class="catalog-badges"><span class="catalog-category">{{ featured.category }}</span>{% if featured.course.is_mandatory %}<span class="catalog-badge catalog-badge--important">Обязательный</span>{% endif %}</div>
+        <h2>{{ featured.course.title }}</h2>
+        <p>{{ featured.course.description|default:"Описание курса будет добавлено позже."|truncatewords:36 }}</p>
+        <dl class="catalog-meta">
+          <div><dt>Состояние</dt><dd><span class="catalog-status catalog-status--{{ featured.status_class }}">{{ featured.status_label }}</span></dd></div>
+          <div><dt>Срок актуальности</dt><dd>{% if featured.course.validity_days %}{{ featured.course.validity_days }} дней{% else %}Не ограничен{% endif %}</dd></div>
+          <div><dt>Последний результат</dt><dd>{% if featured.latest_percent is not None %}{{ featured.latest_percent }}%{% else %}Нет результата{% endif %}</dd></div>
+        </dl>
+        <div class="catalog-featured-actions"><a class="btn btn-primary" href="{% url 'courses:detail' featured.course.pk %}">Открыть курс</a>{% if featured.course.training_program %}<span class="catalog-program">{{ featured.course.training_program.title }}</span>{% endif %}</div>
+      </div>
+    </article>
+    {% endwith %}
+
+    <section class="catalog-results" aria-labelledby="catalog-all-title">
+      <div class="catalog-section-heading"><div><h2 id="catalog-all-title">Все программы</h2><p data-course-count>{{ catalog_summary.total }} курсов</p></div></div>
+      <div class="catalog-grid" data-course-grid>
+        {% for card in catalog_cards %}{% if not forloop.first %}
+        <article class="course-card ibsec-card" data-course-card data-title="{{ card.course.title|lower }}" data-description="{{ card.course.description|lower }}" data-category="{{ card.category_key }}" data-assigned="{% if card.is_assigned %}1{% else %}0{% endif %}" data-mandatory="{% if card.course.is_mandatory %}1{% else %}0{% endif %}">
+          <a class="course-card-image" href="{% url 'courses:detail' card.course.pk %}"><img src="{% static card.image %}" alt="Иллюстрация к курсу «{{ card.course.title }}»" loading="lazy"><span class="course-card-shade" aria-hidden="true"></span>{% if card.course.is_mandatory %}<span class="catalog-image-label">Обязательный</span>{% endif %}</a>
+          <div class="course-card-body">
+            <div class="course-card-topline"><span class="catalog-category">{{ card.category }}</span><span class="catalog-status catalog-status--{{ card.status_class }}">{{ card.status_label }}</span></div>
+            <h3><a href="{% url 'courses:detail' card.course.pk %}">{{ card.course.title }}</a></h3>
+            <p>{{ card.course.description|default:"Описание курса будет добавлено позже."|truncatewords:22 }}</p>
+            <div class="course-card-facts"><span>{% if card.course.validity_days %}{{ card.course.validity_days }} дней{% else %}Без ограничения срока{% endif %}</span><span>{% if card.latest_percent is not None %}Результат: {{ card.latest_percent }}%{% else %}Результатов пока нет{% endif %}</span></div>
+            <a class="course-card-action" href="{% url 'courses:detail' card.course.pk %}">Открыть курс <span aria-hidden="true">→</span></a>
+          </div>
+        </article>
+        {% endif %}{% endfor %}
+      </div>
+      <div class="catalog-empty ibsec-card" data-catalog-empty hidden><div class="catalog-empty-icon" aria-hidden="true">⌕</div><h3>Курсы не найдены</h3><p>Измените поисковый запрос или сбросьте выбранные фильтры.</p><button class="btn btn-outline-primary" type="button" data-catalog-reset>Сбросить фильтры</button></div>
+    </section>
+  {% else %}
+    <div class="catalog-empty ibsec-card"><div class="catalog-empty-icon" aria-hidden="true">□</div><h2>Опубликованных курсов пока нет</h2><p>После публикации учебные программы появятся в этом разделе.</p>{% if rbac.manage_courses %}<a class="btn btn-primary" href="{% url 'courses:create' %}">Создать первый курс</a>{% endif %}</div>
+  {% endif %}
+</section>
 {% endblock %}
+{% block extra_js %}<script src="{% static 'js/course-catalog.js' %}"></script>{% endblock %}

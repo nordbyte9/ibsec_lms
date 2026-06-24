@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Доступ запрещён — IBSec LMS{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/service-pages.css' %}">{% endblock %}
+{% block content %}
+<section class="service-error">
+  <span class="service-error__code">403</span>
+  <h1>Доступ запрещён</h1>
+  <p>У вашей учётной записи нет разрешения на просмотр этой страницы.</p>
+  <a class="service-button service-button--primary" href="{% url 'home' %}">Вернуться на главную</a>
+</section>
+{% endblock %}

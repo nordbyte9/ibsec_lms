@@ -1,51 +1,318 @@
 {% extends 'base.html' %}
-{% block title %}Панель ИБ{% endblock %}
+{% load static %}
+
+{% block title %}Отчёты и аналитика{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/report-dashboard.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h3>Панель ИБ</h3>
-  <div class="btn-group">
-    <a class="btn btn-outline-primary" href="{% url 'reports:employee_report' %}">По сотрудникам</a>
-    <a class="btn btn-outline-primary" href="{% url 'reports:department_report' %}">По подразделениям</a>
-    <a class="btn btn-outline-primary" href="{% url 'reports:course_report' %}">По курсам</a>
-  </div>
-</div>
+<section class="report-page">
+  <header class="report-heading">
+    <div>
+      <span class="report-eyebrow">Управление обучением</span>
+      <h1>Отчёты и аналитика</h1>
+      <p>Сводные показатели обучения, результаты проверок знаний и состояние назначений.</p>
+    </div>
+    <div class="report-actions">
+      {% if can_export_reports %}
+        <a class="button button-light" href="{% url 'reports:training_registry_xlsx' %}?department={{ selected_department }}&course={{ selected_course }}&status={{ selected_status }}">
+          Скачать XLSX
+        </a>
+        <a class="button button-primary" href="{% url 'reports:course_export_csv' %}?department={{ selected_department }}&course={{ selected_course }}&status={{ selected_status }}">
+          Скачать CSV
+        </a>
+      {% endif %}
+    </div>
+  </header>
 
-<form method="get" class="row g-2 mb-4">
-  <div class="col-md-3">
-    <select name="department" class="form-select">
-      <option value="">Все подразделения</option>
-      {% for department in departments %}
-        <option value="{{ department.id }}" {% if selected_department == department.id|stringformat:'s' %}selected{% endif %}>{{ department.name }}</option>
-      {% endfor %}
-    </select>
-  </div>
-  <div class="col-md-3">
-    <select name="course" class="form-select">
-      <option value="">Все курсы</option>
-      {% for course in courses %}
-        <option value="{{ course.id }}" {% if selected_course == course.id|stringformat:'s' %}selected{% endif %}>{{ course.title }}</option>
-      {% endfor %}
-    </select>
-  </div>
-  <div class="col-md-3">
-    <select name="status" class="form-select">
-      <option value="">Все статусы</option>
-      <option value="assigned" {% if selected_status == 'assigned' %}selected{% endif %}>Назначено</option>
-      <option value="in_progress" {% if selected_status == 'in_progress' %}selected{% endif %}>В процессе</option>
-      <option value="completed" {% if selected_status == 'completed' %}selected{% endif %}>Завершено</option>
-      <option value="overdue" {% if selected_status == 'overdue' %}selected{% endif %}>Просрочено</option>
-    </select>
-  </div>
-  <div class="col-md-3">
-    <button class="btn btn-primary w-100">Применить</button>
-  </div>
-</form>
+  <nav class="report-tabs" aria-label="Разделы отчётов">
+    <a class="is-active" href="{% url 'reports:dashboard' %}">Обзор</a>
+    <a href="{% url 'reports:employee_report' %}">По сотрудникам</a>
+    <a href="{% url 'reports:department_report' %}">По подразделениям</a>
+    <a href="{% url 'reports:course_report' %}">По курсам</a>
+  </nav>
 
-<div class="row g-3 mb-4">
-  <div class="col-md-4"><div class="card"><div class="card-body"><div class="text-muted">Всего сотрудников</div><div class="fs-3">{{ dashboard.employees_total }}</div></div></div></div>
-  <div class="col-md-4"><div class="card"><div class="card-body"><div class="text-muted">Всего назначений</div><div class="fs-3">{{ dashboard.assignments_total }}</div></div></div></div>
-  <div class="col-md-4"><div class="card"><div class="card-body"><div class="text-muted">Завершено</div><div class="fs-3">{{ dashboard.completed_total }}</div></div></div></div>
-  <div class="col-md-4"><div class="card"><div class="card-body"><div class="text-muted">Просрочено</div><div class="fs-3">{{ dashboard.overdue_total }}</div></div></div></div>
-  <div class="col-md-4"><div class="card"><div class="card-body"><div class="text-muted">Средний процент тестов</div><div class="fs-3">{{ dashboard.avg_percent }}%</div></div></div></div>
-</div>
+  <form class="report-filters" method="get">
+    <label>
+      <span>Подразделение</span>
+      <select name="department">
+        <option value="">Все подразделения</option>
+        {% for department in departments %}
+          <option value="{{ department.id }}" {% if selected_department == department.id|stringformat:'s' %}selected{% endif %}>{{ department.name }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>
+      <span>Курс</span>
+      <select name="course">
+        <option value="">Все курсы</option>
+        {% for course in courses %}
+          <option value="{{ course.id }}" {% if selected_course == course.id|stringformat:'s' %}selected{% endif %}>{{ course.title }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>
+      <span>Состояние</span>
+      <select name="status">
+        <option value="">Все состояния</option>
+        <option value="assigned" {% if selected_status == 'assigned' %}selected{% endif %}>Назначено</option>
+        <option value="in_progress" {% if selected_status == 'in_progress' %}selected{% endif %}>В процессе</option>
+        <option value="completed" {% if selected_status == 'completed' %}selected{% endif %}>Завершено</option>
+        <option value="overdue" {% if selected_status == 'overdue' %}selected{% endif %}>Просрочено</option>
+      </select>
+    </label>
+    <div class="report-filter-buttons">
+      <button class="button button-primary" type="submit">Применить</button>
+      <a class="button button-light" href="{% url 'reports:dashboard' %}">Сбросить</a>
+    </div>
+  </form>
+
+  <div class="report-metrics">
+    <article class="report-metric">
+      <span>Сотрудников</span>
+      <strong>{{ dashboard.employees_total }}</strong>
+      <small>участвуют в системе обучения</small>
+    </article>
+    <article class="report-metric">
+      <span>Назначений</span>
+      <strong>{{ dashboard.assignments_total }}</strong>
+      <small>с учётом выбранных фильтров</small>
+    </article>
+    <article class="report-metric">
+      <span>Уровень завершения</span>
+      <strong>{{ dashboard.completion_percent }}%</strong>
+      <small>{{ dashboard.completed_total }} назначений завершено</small>
+    </article>
+    <article class="report-metric report-metric-warning">
+      <span>Просрочено</span>
+      <strong>{{ dashboard.overdue_total }}</strong>
+      <small>требуют внимания</small>
+    </article>
+    <article class="report-metric">
+      <span>Средний результат</span>
+      <strong>{{ dashboard.avg_percent }}%</strong>
+      <small>по {{ dashboard.submissions_total }} попыткам</small>
+    </article>
+  </div>
+
+  <div class="report-grid report-grid-primary">
+    <article class="report-card report-card-wide">
+      <div class="report-card-heading">
+        <div>
+          <h2>Состояние назначений</h2>
+          <p>Распределение всех назначений по текущему состоянию.</p>
+        </div>
+        <strong>{{ dashboard.assignments_total }}</strong>
+      </div>
+      <div class="status-summary" data-report-status>
+        <div class="status-ring" style="--completed: {{ dashboard.completion_percent }};">
+          <span>{{ dashboard.completion_percent }}%</span>
+          <small>завершено</small>
+        </div>
+        <div class="status-list">
+          {% for item in status_items %}
+            <div class="status-row">
+              <div>
+                <i class="status-dot status-dot-{{ item.kind }}"></i>
+                <span>{{ item.label }}</span>
+              </div>
+              <div class="status-row-value">
+                <strong>{{ item.value }}</strong>
+                <span>{{ item.percent }}%</span>
+              </div>
+              <div class="status-track"><span class="status-fill status-fill-{{ item.kind }}" style="width: {{ item.percent }}%"></span></div>
+            </div>
+          {% empty %}
+            <p class="empty-state">Назначений пока нет.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </article>
+
+    <article class="report-card">
+      <div class="report-card-heading">
+        <div>
+          <h2>Результаты проверок</h2>
+          <p>Соотношение успешно и неуспешно завершённых попыток.</p>
+        </div>
+      </div>
+      <div class="result-donut-wrap">
+        <div class="result-donut" style="--passed: {{ dashboard.pass_percent }};">
+          <div><strong>{{ dashboard.pass_percent }}%</strong><span>успешно</span></div>
+        </div>
+        <div class="result-legend">
+          <div><i class="legend-mark legend-mark-success"></i><span>Успешно пройдено</span><strong>{{ dashboard.passed_total }}</strong></div>
+          <div><i class="legend-mark legend-mark-danger"></i><span>Не пройдено</span><strong>{{ dashboard.failed_total }}</strong></div>
+        </div>
+      </div>
+      <dl class="result-details">
+        <div><dt>Средний результат</dt><dd>{{ dashboard.avg_percent }}%</dd></div>
+        <div><dt>Всего попыток</dt><dd>{{ dashboard.submissions_total }}</dd></div>
+      </dl>
+    </article>
+  </div>
+
+  <div class="report-grid">
+    <article class="report-card report-card-wide">
+      <div class="report-card-heading">
+        <div>
+          <h2>Сравнение подразделений</h2>
+          <p>Уровень завершения обучения по подразделениям.</p>
+        </div>
+        <a href="{% url 'reports:department_report' %}">Открыть полный отчёт</a>
+      </div>
+      {% if department_rows %}
+        <div class="vertical-chart" aria-label="Диаграмма завершения обучения по подразделениям">
+          <div class="vertical-chart__scale" aria-hidden="true"><span>100%</span><span>75%</span><span>50%</span><span>25%</span><span>0%</span></div>
+          <div class="vertical-chart__plot">
+            {% for row in department_rows|slice:':6' %}
+              <div class="vertical-chart__column">
+                <div class="vertical-chart__value">{{ row.completion_percent }}%</div>
+                <div class="vertical-chart__bar-box"><span style="height: {{ row.completion_percent }}%"></span></div>
+                <strong title="{{ row.name }}">{{ row.name|truncatechars:18 }}</strong>
+                <small>{{ row.completed }} из {{ row.assigned }}</small>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% else %}
+        <div class="empty-state">По выбранным условиям данных нет.</div>
+      {% endif %}
+    </article>
+
+    <article class="report-card">
+      <div class="report-card-heading">
+        <div>
+          <h2>Просроченные курсы</h2>
+          <p>Курсы с наибольшим числом просрочек.</p>
+        </div>
+      </div>
+      <div class="overdue-list">
+        {% for item in overdue_courses %}
+          <div class="overdue-item"><span>{{ item.title }}</span><strong>{{ item.count }}</strong></div>
+        {% empty %}
+          <div class="empty-state empty-state-success">Просроченных назначений нет.</div>
+        {% endfor %}
+      </div>
+    </article>
+  </div>
+
+  <article class="report-card">
+    <div class="report-card-heading">
+      <div>
+        <h2>Статистика по подразделениям</h2>
+          <p>Сравнение завершения обучения и результатов тестирования.</p>
+        </div>
+        <a href="{% url 'reports:department_report' %}">Открыть полный отчёт</a>
+      </div>
+      <div class="department-chart">
+        {% for row in department_rows %}
+          <div class="department-bar-row">
+            <div class="department-name">
+              <strong>{{ row.name }}</strong>
+              <span>{{ row.completed }} из {{ row.assigned }} завершено</span>
+            </div>
+            <div class="department-bar"><span style="width: {{ row.completion_percent }}%"></span></div>
+            <div class="department-values">
+              <strong>{{ row.completion_percent }}%</strong>
+              <span>результат {{ row.avg_percent }}%</span>
+            </div>
+          </div>
+        {% empty %}
+          <div class="empty-state">По выбранным условиям данных нет.</div>
+        {% endfor %}
+      </div>
+    </article>
+
+  <article class="report-card">
+    <div class="report-card-heading">
+      <div>
+        <h2>Показатели по курсам</h2>
+        <p>Назначения, завершение и средний результат по каждому курсу.</p>
+      </div>
+      <a href="{% url 'reports:course_report' %}">Открыть полный отчёт</a>
+    </div>
+    <div class="table-responsive">
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th>Курс</th>
+            <th>Назначено</th>
+            <th>Завершено</th>
+            <th>Просрочено</th>
+            <th>Уровень завершения</th>
+            <th>Средний результат</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in course_rows %}
+            <tr>
+              <td><strong>{{ row.course.title }}</strong></td>
+              <td>{{ row.assigned }}</td>
+              <td>{{ row.completed }}</td>
+              <td>{% if row.overdue %}<span class="status-badge status-badge-danger">{{ row.overdue }}</span>{% else %}0{% endif %}</td>
+              <td>
+                <div class="table-progress"><span style="width: {{ row.completion_percent }}%"></span></div>
+                <small>{{ row.completion_percent }}%</small>
+              </td>
+              <td><strong>{{ row.avg_percent }}%</strong></td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="6" class="empty-state">По выбранным условиям данных нет.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </article>
+
+  <article class="report-card">
+    <div class="report-card-heading">
+      <div>
+        <h2>Последние результаты</h2>
+        <p>Недавние завершённые проверки знаний.</p>
+      </div>
+      <a href="{% url 'quizzes:attempt_history' %}">Открыть историю</a>
+    </div>
+    <div class="table-responsive">
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th>Сотрудник</th>
+            <th>Проверка</th>
+            <th>Курс</th>
+            <th>Результат</th>
+            <th>Состояние</th>
+            <th>Дата</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for submission in recent_results %}
+            <tr>
+              <td>{{ submission.user.get_full_name|default:submission.user.username }}</td>
+              <td>{{ submission.quiz.title }}</td>
+              <td>{{ submission.quiz.course.title }}</td>
+              <td><strong>{{ submission.percent|floatformat:1 }}%</strong></td>
+              <td>
+                {% if submission.passed %}
+                  <span class="status-badge status-badge-success">Пройдено</span>
+                {% else %}
+                  <span class="status-badge status-badge-danger">Не пройдено</span>
+                {% endif %}
+              </td>
+              <td>{{ submission.taken_at|date:'d.m.Y H:i' }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="6" class="empty-state">Результатов пока нет.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </article>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/report-dashboard.js' %}" defer></script>
 {% endblock %}

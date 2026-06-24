@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% load static knowledge_design %}
+
+{% block title %}База знаний — IBSec LMS{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/knowledge-base.css' %}">{% endblock %}
+
+{% block content %}
+<section class="knowledge-page">
+  <header class="knowledge-heading">
+    <div>
+      <p class="knowledge-eyebrow">База знаний</p>
+      <h1>Материалы по информационной безопасности</h1>
+      <p>Практические статьи, памятки и рекомендации для безопасной работы.</p>
+    </div>
+    {% if can_manage_knowledge %}
+      <a class="ibsec-button ibsec-button--primary" href="{% url 'knowledge:manage' %}">Управление статьями</a>
+    {% endif %}
+  </header>
+
+  <form class="knowledge-search" method="get">
+    <label class="knowledge-search__field">
+      <span class="visually-hidden">Поиск по статьям</span>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></svg>
+      <input type="search" name="q" value="{{ query }}" placeholder="Поиск по названию и содержанию">
+    </label>
+    {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
+    <button class="ibsec-button ibsec-button--primary" type="submit">Найти</button>
+  </form>
+
+  <nav class="knowledge-categories" aria-label="Категории статей">
+    <a class="{% if not selected_category %}is-active{% endif %}" href="{% url 'knowledge:list' %}{% if query %}?q={{ query|urlencode }}{% endif %}">Все материалы</a>
+    {% for category in categories %}
+      <a class="{% if selected_category == category.slug %}is-active{% endif %}" href="?category={{ category.slug }}{% if query %}&q={{ query|urlencode }}{% endif %}">{{ category.name }} <span>{{ category.published_count }}</span></a>
+    {% endfor %}
+  </nav>
+
+  {% if featured %}
+    {% article_cover featured as featured_cover %}
+    <article class="knowledge-featured">
+      <a class="knowledge-featured__image" href="{{ featured.get_absolute_url }}">
+        <img src="{{ featured_cover }}" alt="Обложка статьи «{{ featured.title }}»">
+      </a>
+      <div class="knowledge-featured__content">
+        <span class="knowledge-badge">{{ featured.category.name }}</span>
+        <h2><a href="{{ featured.get_absolute_url }}">{{ featured.title }}</a></h2>
+        <p>{{ featured.summary }}</p>
+        <div class="knowledge-meta">
+          <span>{{ featured.reading_minutes }} мин. чтения</span>
+          <span>Обновлено {{ featured.updated_at|date:"d.m.Y" }}</span>
+        </div>
+        <a class="knowledge-read-link" href="{{ featured.get_absolute_url }}">Читать статью <span aria-hidden="true">→</span></a>
+      </div>
+    </article>
+  {% endif %}
+
+  {% if articles %}
+    <div class="knowledge-grid">
+      {% for article in articles %}
+        {% article_cover article as cover %}
+        <article class="knowledge-card">
+          <a class="knowledge-card__image" href="{{ article.get_absolute_url }}">
+            <img src="{{ cover }}" alt="Обложка статьи «{{ article.title }}»" loading="lazy">
+          </a>
+          <div class="knowledge-card__body">
+            <span class="knowledge-badge">{{ article.category.name }}</span>
+            <h2><a href="{{ article.get_absolute_url }}">{{ article.title }}</a></h2>
+            <p>{{ article.summary|truncatechars:150 }}</p>
+            <div class="knowledge-meta"><span>{{ article.reading_minutes }} мин.</span><span>{{ article.updated_at|date:"d.m.Y" }}</span></div>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  {% elif not featured %}
+    <div class="knowledge-empty">
+      <h2>Материалы не найдены</h2>
+      <p>Измените запрос или сбросьте выбранную категорию.</p>
+      <a class="ibsec-button ibsec-button--secondary" href="{% url 'knowledge:list' %}">Показать все статьи</a>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

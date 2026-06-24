@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Категории статей — IBSec LMS{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/knowledge-base.css' %}">{% endblock %}
+{% block content %}
+<section class="knowledge-manager">
+  <header class="knowledge-manager__heading"><div><p class="knowledge-eyebrow">База знаний</p><h1>Категории статей</h1><p>Категории помогают сотрудникам быстро находить нужные материалы.</p></div><div class="knowledge-manager__actions"><a class="ibsec-button ibsec-button--secondary" href="{% url 'knowledge:manage' %}">Статьи</a><a class="ibsec-button ibsec-button--primary" href="{% url 'knowledge:category_create' %}">Создать категорию</a></div></header>
+  <div class="knowledge-category-manage-grid">
+    {% for category in categories %}
+      <article><div><strong>{{ category.name }}</strong><p>{{ category.description|default:"Описание не заполнено" }}</p><small>Статей: {{ category.article_count }} · Порядок: {{ category.order }}</small></div><div><a href="{% url 'knowledge:category_edit' category.pk %}">Изменить</a><a class="is-danger" href="{% url 'knowledge:category_delete' category.pk %}">Удалить</a></div></article>
+    {% empty %}<div class="knowledge-empty"><h2>Категорий пока нет</h2><p>Создайте первую категорию для статей базы знаний.</p></div>{% endfor %}
+  </div>
+</section>
+{% endblock %}
