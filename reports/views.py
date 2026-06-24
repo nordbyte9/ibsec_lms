@@ -438,13 +438,3 @@ def my_progress(request):
         'submissions': submissions,
         'breadcrumbs': _my_progress_breadcrumbs(),
     })
-
-
-@login_required
-def analytics(request):
-    return dashboard(request)
-
-
-@login_required
-def export_csv(request):
-    return export_course_csv(request)

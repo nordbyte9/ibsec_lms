@@ -6,7 +6,6 @@ app_name = 'reports'
 
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
-    path('dashboard/', views.dashboard, name='dashboard_alias'),
     path('my/', views.my_progress, name='my_progress'),
     path('employees/', views.employee_report, name='employee_report'),
     path('departments/', views.department_report, name='department_report'),
@@ -24,6 +23,4 @@ urlpatterns = [
         document_views.download_assignment_certificate_docx,
         name='assignment_certificate_docx',
     ),
-    path('analytics/', views.analytics, name='analytics'),
-    path('export/', views.export_csv, name='export_csv'),
 ]
